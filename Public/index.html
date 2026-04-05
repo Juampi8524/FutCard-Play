@@ -190,6 +190,11 @@
         
         @media (max-width: 800px) { .player-name { display: none; } }
     </style>
+    
+    <script src=https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js></script>
+    <script src=https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore-compat.js></script>
+    
+    <script src=https://cdn.socket.io/4.7.4/socket.io.min.js></script>
 </head>
 <body class=”dark-theme”>
 
@@ -578,7 +583,68 @@
         <div style=”width: 40px; height: 40px; border: 4px solid rgba(255,255,255,0.1); border-top: 4px solid var(--primary); border-radius: 50%; animation: spin 1s linear infinite;”></div>
     </div>
 
+    <script src=https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js></script>
+    <script src=https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore-compat.js></script>
+    
+    <script src=https://cdn.socket.io/4.7.4/socket.io.min.js></script>
+
     <script>
+        // --- CONEXIÓN AL SERVIDOR MULTIJUGADOR PROTEGIDA ---
+        Let socket;
+        Try {
+            Socket = io(‘https://futcard-play.onrender.com’); 
+            Socket.on(‘connect’, () => {
+                Console.log(“¡Conectado al servidor con éxito! Mi ID es:”, socket.id);
+            });
+        } catch€ {
+            Console.log(“Jugando offline. El multijugador está inactivo.”);
+        }
+
+        // --- INICIALIZAR FIREBASE ---
+        Const firebaseConfig = {
+          apiKey: “AIzaSyBCGbzPLV40o-i81k-lLPId0dnFIGBciLU”,
+          authDomain: “futcard-play.firebaseapp.com”,
+          projectId: “futcard-play”,
+          storageBucket: “futcard-play.firebasestorage.app”,
+          messagingSenderId: “467062996610”,
+          appId: “1:467062996610:web:705d1704ad8c61b4fb3e9b”,
+          measurementId: “G-J80C29EPB7”
+        };
+
+        If (¡firebase.apps.length) {
+            Firebase.initializeApp(firebaseConfig);
+        }
+        Window.db = firebase.firestore();
+
+        // --- SISTEMA DE AMIGOS EN LA NUBE ---
+        Let unsubSocial = null;
+        Function listenToFirebaseSocial() {
+            If(¡window.db || activeUserEmail === ‘invitado’) return;
+            If(unsubSocial) unsubSocial();
+
+            unsubSocial = window.db.collection(“solicitudes”).onSnapshot((snapshot) => {
+                let pending = [];
+                let friends = [];
+                
+                snapshot.forEach(docSnap => {
+                    let data = docSnap.data();
+                    if(data.destinatario === currentUser.code && data.estado === “pendiente”) {
+                        pending.push({ docId: docSnap.id, code: data.remitente, name: data.nombreRemitente || “Jugador” });
+                    } else if(data.estado === “aceptado”) {
+                        If(data.remitente === currentUser.code) {
+                            Friends.push({ name: data.nombreDestinatario || “Amigo”, code: data.destinatario });
+                        } else if(data.destinatario === currentUser.code) {
+                            Friends.push({ name: data.nombreRemitente || “Amigo”, code: data.remitente });
+                        }
+                    }
+                });
+                currentUser.requests = pending;
+                currentUser.friends = friends;
+                renderFriends();
+            });
+        }
+
+        // --- CÓDIGO ORIGINAL INTACTO DE AQUÍ EN ADELANTE ---
         Function setTxt(id, val) { let el = document.getElementById(id); if(el) el.innerText = val; }
         Function setVal(id, val) { let el = document.getElementById(id); if(el) el.value = val; }
 
@@ -631,7 +697,6 @@
 
         Const mDefs = { daily:[{id:’d1’, es:’Juega 1 partido’, t:1, r:50, tp:’play’}, {id:’d2’, es:’Anota 3 goles’, t:3, r:80, tp:’goals’}, {id:’d3’, es:’Gana 1 partido’, t:1, r:100, tp:’wins’}], weekly:[{id:’w1’, es:’Juega 10 partidos’, t:10, r:500, tp:’play’}, {id:’w2’, es:’Anota 20 goles’, t:20, r:800, tp:’goals’}, {id:’w3’, es:’Gana 5 partidos’, t:5, r:1000, tp:’wins’}, {id:’w4’, es:’Juega 20 partidos’, t:20, r:1200, tp:’play’}, {id:’w5’, es:’Anota 50 goles’, t:50, r:1500, tp:’goals’}, {id:’w6’, es:’Gana 10 partidos’, t:10, r:2000, tp:’wins’}] };
 
-        // --- VARIABLES CAOS ---
         Let chaosActiveEvent = null, chaosTimer = 0, chaosEventDuration = 0;
         Let wind = {vx: 0, vy: 0}, portals = [], mudPuddles = [], portalCooldown = 0, iceMode = false;
         Const chaosNames = { ‘wind’: ‘🌪️ ¡VIENTO EXTREMO!’, ‘mud’: ‘💩 ¡SUELO PEGAJOSO!’, ‘portals’: ‘🌀 ¡PORTALES ACTIVOS!’, ‘giant_ball’: ‘⚽ ¡PELOTA GIGANTE!’, ‘ice’: ‘🧊 ¡CANCHA DE HIELO!’ };
@@ -660,6 +725,9 @@
             let btnOpenLogin = document.getElementById(‘btn-open-login’); let btnLogout = document.getElementById(‘btn-logout’);
             if(btnOpenLogin && btnLogout) { if (email === ‘invitado’) { btnOpenLogin.style.display = ‘flex’; btnLogout.style.display = ‘none’; } else { btnOpenLogin.style.display = ‘none’; btnLogout.style.display = ‘flex’; } }
             applyProfile(); checkMissionResets(); renderMissions(); applyHUDPrefs();
+            
+            // INICIA FIREBASE AL CARGAR LA CUENTA
+            listenToFirebaseSocial();
         }
         Function saveAccounts() { allAccounts[activeUserEmail] = currentUser; localStorage.setItem(‘futAccounts’, JSON.stringify(allAccounts)); applyProfile(); }
 
@@ -967,7 +1035,7 @@
         Function revealPack() { if(¡pendingReward) return; document.getElementById(‘pack-card’).style.display = ‘none’; document.getElementById(‘pack-reveal’).style.display = ‘flex’; setTxt(‘pack-reveal-text’, pendingReward.text); setTxt(‘pack-title’, “¡RECOMPENSA!”); document.getElementById(‘pack-close-btn’).style.display = ‘block’; }
         Function closePack() { closeScreen(‘pack-animation-screen’); pendingReward = null; openShop(); }
 
-        // --- SISTEMA SOCIAL REAL (BASADO EN BASE DE DATOS LOCAL) ---
+        // --- SISTEMA SOCIAL ADAPTADO A FIREBASE ---
         Function switchFriendsTab(tabName) { [‘list’, ‘req’, ‘add’].forEach(t => { let ct = document.getElementById(‘fr-content-‘ + t); if(ct) ct.style.display = ‘none’; let tb = document.getElementById(‘tab-fr-‘ + t); if(tb) tb.classList.remove(‘active’); }); let ctOpen = document.getElementById(‘fr-content-‘ + tabName); if(ctOpen) ctOpen.style.display = ‘block’; let tbOpen = document.getElementById(‘tab-fr-‘ + tabName); if(tbOpen) tbOpen.classList.add(‘active’); }
         
         Function renderFriends() {
@@ -982,47 +1050,57 @@
         }
 
         Function sendFriendRequest() { 
-            Let input = document.getElementById(‘add-friend-input’); 
-            Const codeToFind = input ¿ input.value.trim() : ‘’; 
-            If(codeToFind.length ¡== 6 || isNaN(codeToFind)) return alert(“Código inválido (Debe ser de 6 números).”);
-            If(codeToFind === currentUser.code) return alert(“No puedes enviarte una solicitud a ti mismo.”);
-            
-            Let targetEmail = null;
-            Let targetAccount = null;
-            For(let email in allAccounts) {
-                If(allAccounts[email].code === codeToFind) {
-                    targetEmail = email; targetAccount = allAccounts[email]; break;
+            Try {
+                Let input = document.getElementById(‘add-friend-input’); 
+                Const codeToFind = input ¿ input.value.trim() : ‘’; 
+                
+                If(codeToFind.length ¡== 6 || isNaN(codeToFind)) {
+                    Alert(“Código inválido (Debe tener 6 números).”);
+                    Return;
                 }
+                If(codeToFind === currentUser.code) {
+                    Alert(“No puedes enviarte una solicitud a ti mismo.”);
+                    Return;
+                }
+                
+                Let alreadyFriend = currentUser.friends.some(f => f.code === codeToFind);
+                If(alreadyFriend) {
+                    Alert(“Ya tienes a este jugador en tu lista de amigos.”);
+                    Return;
+                }
+                
+                If(¡window.db) {
+                    Alert(“Conectando a Firebase… Espera un segundo.”);
+                    Return;
+                }
+
+                Window.db.collection(“solicitudes”).add({
+                    Remitente: currentUser.code,
+                    nombreRemitente: currentUser.name,
+                    destinatario: codeToFind,
+                    estado: “pendiente”
+                }).then(() => {
+                    If(input) input.value=’’; 
+                    Alert(“¡Solicitud enviada al código “ + codeToFind + “!”); 
+                }).catch(e => {
+                    Console.error(“Firebase Error:”, e);
+                    Alert(“No se pudo enviar la solicitud. Revisa la consola.”);
+                });
+            } catch€ {
+                Alert(“Error técnico: “ + e.message);
             }
-            
-            If(¡targetAccount) return alert(“Jugador no encontrado.”);
-            
-            Let alreadyFriend = currentUser.friends.some(f => f.email === targetEmail);
-            If(alreadyFriend) return alert(“Ya tienes a este jugador en tu lista de amigos.”);
-            
-            Let alreadyRequested = targetAccount.requests.some(r => r.email === activeUserEmail);
-            If(alreadyRequested) return alert(“Ya enviaste una solicitud a este jugador.”);
-            
-            targetAccount.requests.push({ email: activeUserEmail, name: currentUser.name, code: currentUser.code });
-            allAccounts[targetEmail] = targetAccount;
-            localStorage.setItem(‘futAccounts’, JSON.stringify(allAccounts));
-            
-            if(input) input.value=’’; 
-            alert(“¡Solicitud enviada a “ + targetAccount.name + “!”); 
         }
 
         Function acceptFriend(i) { 
             Let req = currentUser.requests[i];
+            If(¡window.db) return alert(“Conectando al servidor… Intenta de nuevo.”);
             
-            currentUser.friends.push({ email: req.email, name: req.name, code: req.code });
-            if(allAccounts[req.email]) {
-                allAccounts[req.email].friends.push({ email: activeUserEmail, name: currentUser.name, code: currentUser.code });
-            }
-            
-            currentUser.requests.splice(i, 1); 
-            saveAccounts(); 
-            renderFriends(); 
-            alert(“¡Ahora tú y “ + req.name + “ son amigos!”);
+            Window.db.collection(“solicitudes”).doc(req.docId).update({
+                Estado: “aceptado”,
+                nombreDestinatario: currentUser.name
+            }).then(() => {
+                Alert(“¡Solicitud aceptada!”);
+            }).catch(e => { console.error€; alert(“Hubo un error al aceptar.”); });
         }
 
         Function challengeOnline(frName) { closeScreen(‘friends-screen’); const loader=document.getElementById(‘loading-overlay’); const txt=document.getElementById(‘loading-text’); if(loader) {loader.style.display=’flex’; setTimeout(()=>loader.style.opacity=’1’,10);} if(txt) txt.innerText=`Invitando a ${frName}…`; setTimeout(()=>{if(txt) txt.innerText=`¡${frName} se unió!`; setTimeout(()=>{if(loader) loader.style.opacity=’0’; setTimeout(()=>{if(loader) loader.style.display=’none’;},400); lobbyState.players = 2; lobbyState.guestName = frName; lobbyState.isReady = false; lobbyState.guestReady = false; setTxt(‘lobby-p2-name’, frName); setTxt(‘lobby-p2-av’, frName.charAt(0).toUpperCase()); document.getElementById(‘lobby-p2-oval’).classList.remove(‘empty’); document.getElementById(‘lobby-p2-av’).classList.remove(‘empty’); document.getElementById(‘lobby-p2-av’).classList.add(‘guest’); setTxt(‘lobby-p2-status’, ‘ESPERANDO…’); document.getElementById(‘lobby-p2-status’).style.color = ‘var(--gold)’; setLobbyMode(‘online’, ‘normal’, ‘🌍 Online 1 vs 1’); openLobby(); }, 1500);}, 2000); }
@@ -1508,3 +1586,4 @@
     </script>
 </body>
 </html>
+
