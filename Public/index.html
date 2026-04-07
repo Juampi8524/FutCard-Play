@@ -250,7 +250,7 @@
             <div style=”color:var(--gold); font-family:monospace; margin-bottom: 10px;”>Código: <span id=”fp-code”>123456</span></div>
             <div id=”fp-status” style=”font-weight: bold; margin-bottom: 20px; color: var(--text-muted);”>Última vez: ---</div>
             
-            <button class=”main-btn” id=”fp-action-btn” style=”background:var(--primary); margin-bottom: 10px;” onclick=”inviteToLobbyFromProfile()”>🎮 Invitar al grupo</button>
+            <button class=”main-btn” style=”background:var(--primary); margin-bottom: 10px;” onclick=”challengeOnlineFromProfile()”>🎮 Desafiar</button>
             <button class=”main-btn” style=”background:var(--danger); margin-bottom: 10px;” onclick=”deleteFriendFromProfile()”>🗑️ Eliminar Amigo</button>
             <button class=”main-btn btn-close” onclick=”closeScreen(‘friend-profile-screen’)”>Cerrar</button>
         </div>
@@ -263,7 +263,7 @@
             <button class=”btn-atrás” style=”background:var(--primary);” onclick=”openCasillero()”>🎒 Casillero</button>
         </div>
         <div class=”lobby-stage”>
-            <div class=”pedestal-container”><div class=”pedestal-oval”></div><div class=”pedestal-avatar-new dashed” onclick=”friendScreenContext = ‘lobby’; openScreen(‘friends-screen’); renderFriends();”>+</div><div class=”pedestal-tag”>Invitar</div></div>
+            <div class=”pedestal-container”><div class=”pedestal-oval”></div><div class=”pedestal-avatar-new dashed” onclick=”openScreen(‘friends-screen’); renderFriends();”>+</div><div class=”pedestal-tag”>Invitar</div></div>
             <div class=”pedestal-container” style=”transform: scale(1.15); z-index: 10; margin-bottom: 20px;”><div class=”pedestal-oval center”></div><div class=”pedestal-avatar-new solid” id=”lobby-p1-av”>J</div><div class=”pedestal-tag gold” id=”lobby-p1-name”>Jugador</div><div id=”lobby-p1-status” class=”player-status-lbl” style=”color:var(--success)”>LISTO</div></div>
             <div class=”pedestal-container” id=”lobby-guest-container”><div class=”pedestal-oval empty” id=”lobby-p2-oval”></div><div class=”pedestal-avatar-new empty” id=”lobby-p2-av”></div><div class=”pedestal-tag” id=”lobby-p2-name”>---</div><div id=”lobby-p2-status” class=”player-status-lbl”></div></div>
         </div>
@@ -333,7 +333,7 @@
     <div class=”bottom-nav” id=”bottom-nav”>
         <div class=”nav-item active” onclick=”goHome()”><div class=”nav-icon”>🏠</div><div class=”nav-label” data-i18n=”nav_home”>Inicio</div></div>
         <div class=”nav-item” onclick=”openEquipo()”><div class=”nav-icon”>📋</div><div class=”nav-label” data-i18n=”nav_team”>Misiones</div></div>
-        <div class=”nav-item” onclick=”friendScreenContext = ‘social’; openScreen(‘friends-screen’); renderFriends();”><div class=”nav-icon”>🤝</div><div class=”nav-label” data-i18n=”nav_social”>Social</div></div>
+        <div class=”nav-item” onclick=”openScreen(‘friends-screen’); renderFriends();”><div class=”nav-icon”>🤝</div><div class=”nav-label” data-i18n=”nav_social”>Social</div></div>
         <div class=”nav-item” onclick=”openLobby()”><div class=”nav-icon”>⚽</div><div class=”nav-label” data-i18n=”nav_play”>Jugar</div></div>
         <div class=”nav-item” onclick=”openShop()”><div class=”nav-icon”>🛒</div><div class=”nav-label” data-i18n=”nav_shop”>Tienda</div></div>
         <div class=”nav-item” onclick=”openSettings()”><div class=”nav-icon”>⚙️</div><div class=”nav-label” data-i18n=”nav_settings”>Ajustes</div></div>
@@ -646,6 +646,7 @@
             Firebase.initializeApp(firebaseConfig);
         }
         Window.db = firebase.firestore();
+
         // --- PING DE ESTADO ONLINE EN FIREBASE ---
         setInterval(() => {
             if(window.db && currentUser && currentUser.code) {
@@ -772,31 +773,8 @@
             window.db.collection(“notificaciones”).doc(docId).delete().catch(e=>console.log€);
         }
 
-        // --- CONTEXTO DE PANTALLA Y SISTEMA DE PERFIL ---
-        Let friendScreenContext = ‘social’; // Sirve para saber de dónde se abrió la pantalla
+        // --- SISTEMA DE PERFIL DE AMIGO ---
         Let currentFriendView = null;
-
-        Function inviteToLobby(friendCode, friendName) {
-            If(¡window.db) { alert(“Error de conexión a Firebase.”); return; }
-            Window.db.collection(“notificaciones”).add({
-                Destinatario: friendCode,
-                remitenteCode: currentUser.code,
-                remitenteNombre: currentUser.name,
-                tipo: ‘invite’,
-                timestamp: Date.now()
-            }).then(() => {
-                Alert(“¡Invitación enviada a “ + friendName + “!”);
-                closeScreen(‘friends-screen’); // Cierra la pantalla para esperar en el lobby
-            }).catch(e => console.log€);
-        }
-
-        Function inviteToLobbyFromProfile() {
-            If(currentFriendView) {
-                closeScreen(‘friend-profile-screen’);
-                inviteToLobby(currentFriendView.code, currentFriendView.name);
-            }
-        }
-
         Async function openFriendProfile(code, name, docId) {
             currentFriendView = { code, name, docId };
             setTxt(‘fp-name’, name);
@@ -816,6 +794,13 @@
                 } catch€ {
                     Document.getElementById(‘fp-status’).innerHTML = “Última vez: Desconocido”;
                 }
+            }
+        }
+        
+        Function challengeOnlineFromProfile() {
+            If(currentFriendView) {
+                closeScreen(‘friend-profile-screen’);
+                challengeOnline(currentFriendView.code, currentFriendView.name);
             }
         }
         
@@ -974,7 +959,7 @@
             renderNotifs();
         }
 
-        Function checkMissionResets() { let t = new Date().toDateString(); let w = new Date(); w.setHours(0,0,0,0); let d = w.getDay()||7; if(d!==1) w.setHours(-24*(d-1)); w=w.toDateString(); let changed=false; if(currentUser.stats.lastDaily!==t){currentUser.stats.daily={play:0,goals:0,wins:0,claimed:[]};currentUser.stats.lastDaily=t;changed=true;} if(currentUser.stats.lastWeekly!==w){currentUser.stats.weekly={play:0,goals:0,wins:0,claimed:[]};currentUser.stat”.lastWeekly=w;changed=true;} if(changed) saveAccounts(); }
+        Function checkMissionResets() { let t = new Date().toDateString(); let w = new Date(); w.setHours(0,0,0,0); let d = w.getDay()||7; if(d!==1) w.setHours(-24*(d-1)); w=w.toDateString(); let changed=false; if(currentUser.stats.lastDaily!==t){currentUser.stats.daily={play:0,goals:0,wins:0,claimed:[]};currentUser.stats.lastDaily=t;changed=true;} if(currentUser.stats.lastWeekly!==w){currentUser.stats.weekly={play:0,goals:0,wins:0,claimed:[]};currentUser.stats.lastWeekly=w;changed=true;} if(changed) saveAccounts(); }
         Function addStat(type, amount) { checkMissionResets(); currentUser.stats.daily[type]+=amount; currentUser.stats.weekly[type]+=amount; addXP(10); saveAccounts(); let eqScreen = document.getElementById(‘equipo-screen’); if(eqScreen && eqScreen.style.display===’flex’) renderMissions(); }
         Function openEquipo() { openScreen(‘equipo-screen’); checkMissionResets(); renderMissions(); }
 
@@ -1137,20 +1122,13 @@
             If(currentUser.friends.length === 0) { if(frCont) frCont.innerHTML = `<div style=”text-align:center; padding:30px; color:var(--text-muted);”><div style=”font-size:3rem; margin-bottom:10px;”>👥</div>No tienes amigos aún.</div>`; } 
             Else { 
                 currentUser.friends.forEach(fr => { 
-                    let actionBtn = ‘’;
-                    if(friendScreenContext === ‘lobby’) {
-                        actionBtn = `<button class=”btn-small” onclick=”event.stopPropagation(); inviteToLobby(‘${fr.code}’, ‘${fr.name}’)” style=”background:var(--primary);”>Invitar al grupo</button>`;
-                    } else {
-                        actionBtn = `<button class=”btn-small” onclick=”event.stopPropagation(); openFriendProfile(‘${fr.code}’, ‘${fr.name}’, ‘${fr.docId}’)” style=”background:var(--primary);”>Ver perfil</button>`;
-                    }
-
-                    If(frCont) frCont.innerHTML += `<div class=”friend-item” style=”cursor:pointer;” onclick=”openFriendProfile(‘${fr.code}’, ‘${fr.name}’, ‘${fr.docId}’)”>
+                    if(frCont) frCont.innerHTML += `<div class=”friend-item” style=”cursor:pointer;” onclick=”openFriendProfile(‘${fr.code}’, ‘${fr.name}’, ‘${fr.docId}’)”>
                         <div class=”friend-avatar” style=”background:#16ª34a; color:white;”>${fr.name.charAt(0)}<div class=”status-circle”></div></div>
                         <div class=”friend-info” style=”flex:1;”>
                             <div class=”friend-name-line”><div class=”friend-name”>${fr.name}</div><div class=”friend-stars”>★</div></div>
                             <div class=”friend-status-text”><span class=”disconnect-icon”></span> Toca para ver perfil</div>
                         </div>
-                        ${actionBtn}
+                        <button class=”btn-small” onclick=”event.stopPropagation(); challengeOnline(‘${fr.code}’, ‘${fr.name}’)” style=”background:var(--primary);”>Desafiar</button>
                     </div>`; 
                 }); 
             }
@@ -1323,6 +1301,7 @@
                 Ctx.fillRect(0,0,1000,500);
             }
         }
+
 
         Function toggleEmoteMenu() { if(gameState === ‘hud_edit’) return; let m = document.getElementById(‘emote-menu’); if(m) m.style.display = m.style.display === ‘flex’ ¿ ‘none’ : ‘flex’; }
         Function sendEmote(emoji) { p1.emote = emoji; p1.emoteT = 120; let m = document.getElementById(‘emote-menu’); if(m) m.style.display=’none’; }
@@ -1636,14 +1615,3 @@
     </script>
 </body>
 </html>
-
-
-
-
-
-
-
- 
-
-
-
