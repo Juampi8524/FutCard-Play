@@ -1,328 +1,144 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang=”es”>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>FutCard Play - Edición Definitiva</title>
-    <style>
-        /* VARIABLES DE TEMA */
-        :root {
-            --bg-app: #0f1219; --panel-bg: #161b22; --pitch-color: #2e8b57;
-            --text-color: #ffffff; --text-muted: #9ca3af; --primary: #4f46e5; 
-            --card-gradient: linear-gradient(135deg, #3842b0, #24226d);
-            --play-gradient: linear-gradient(135deg, #4f46e5, #3730a3);
-            --danger: #ef4444; --gold: #facc15; --diamond: #00e5ff; --success: #22c55e;
-            --border-color: rgba(255,255,255,0.1); --input-bg: rgba(0,0,0,0.3);
-            --card-bg: rgba(255,255,255,0.05); --overlay: rgba(10, 14, 23, 0.95);
-        }
-        body.light-theme {
-            --bg-app: #f3f4f6; --panel-bg: #ffffff; --text-color: #1f2937; --text-muted: #6b7280;
-            --primary: #3b82f6; --card-gradient: linear-gradient(135deg, #3b82f6, #1e3a8a);
-            --play-gradient: linear-gradient(135deg, #6366f1, #4338ca); --danger: #dc2626;
-            --gold: #ca8a04; --diamond: #0ea5e9; --success: #16a34a; --border-color: #e5e7eb;
-            --input-bg: #f3f4f6; --card-bg: #ffffff; --overlay: rgba(255, 255, 255, 0.9);
-        }
-        body { margin: 0; padding: 0; background-color: var(--bg-app); color: var(--text-color); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; min-height: 100vh; overflow: hidden; touch-action: none; transition: background-color 0.3s, color 0.3s; }
-
-        /* FORZAR HORIZONTAL */
-        #landscape-warning { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg-app); z-index: 999999; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 20px; box-sizing: border-box; }
-        .rotate-icon { font-size: 6rem; margin-bottom: 20px; animation: rotatePhone 2s infinite ease-in-out; }
-        @keyframes rotatePhone { 0% { transform: rotate(0deg); } 50% { transform: rotate(-90deg); } 100% { transform: rotate(-90deg); } }
-        @media screen and (orientation: portrait) { #landscape-warning { display: flex; } }
-
-        /* =========================================
-           DASHBOARD PRINCIPAL
-           ========================================= */
-        #dashboard-screen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-color: var(--bg-app); z-index: 100; display: flex; flex-direction: column; align-items: center; overflow-y: auto; padding-bottom: 90px; transition: opacity 0.3s; }
-        .dash-header { display: flex; justify-content: space-between; align-items: center; width: 100%; max-width: 900px; padding: 15px 20px; box-sizing: border-box; border-bottom: 1px solid var(--border-color); }
-        .dash-logo { font-size: 1.2rem; font-weight: bold; display: flex; align-items: center; gap: 10px; color: var(--gold); }
-        .dash-stats-bar { display: flex; gap: 8px; align-items: center; }
-        .stat-pill { background: rgba(255,255,255,0.05); border: 1px solid var(--border-color); padding: 5px 12px; border-radius: 8px; font-size: 0.9rem; font-weight: bold; display: flex; align-items: center; gap: 5px; }
-        .avatar-pill { background: #6366f1; width: 35px; height: 35px; border-radius: 8px; display: flex; justify-content: center; align-items: center; font-weight: bold; margin-left: 5px; color: white;}
-        .dash-content { display: flex; flex-direction: column; gap: 20px; width: 100%; max-width: 900px; padding: 20px; box-sizing: border-box; }
-        @media (min-width: 768px) { .dash-content { flex-direction: row; align-items: stretch; } }
-        .profile-card { background: var(--card-gradient); color: white; border-radius: 15px; padding: 25px; flex: 1.2; box-shadow: 0 10px 30px rgba(0,0,0,0.3); position: relative; overflow: hidden; }
-        .welcome-text { font-size: 1rem; color: rgba(255,255,255,0.8); margin-bottom: 5px; }
-        .dash-username { font-size: 2.5rem; font-weight: 900; margin: 0 0 5px 0; }
-        .card-stats { display: flex; gap: 20px; font-size: 1.4rem; font-weight: bold; margin-bottom: 20px; align-items: center;}
-        .level-badge { display: inline-flex; align-items: center; gap: 5px; background: rgba(0,0,0,0.3); padding: 6px 15px; border-radius: 20px; font-size: 1rem; font-weight: bold; color: white;}
-        .xp-bar-container { background: rgba(0,0,0,0.3); height: 6px; border-radius: 3px; width: 100%; overflow: hidden; margin-top: 10px;}
-        .xp-bar-fill { background: var(--success); height: 100%; width: 0%; transition: width 0.3s; }
-        .play-card { background: var(--play-gradient); color: white; border-radius: 15px; padding: 25px; flex: 1; display: flex; align-items: center; justify-content: space-between; cursor: pointer; box-shadow: 0 10px 30px rgba(0,0,0,0.3); transition: transform 0.2s; }
-        .play-card:active { transform: scale(0.98); }
-        .play-info { display: flex; align-items: center; gap: 15px; }
-        .play-icon { font-size: 2.5rem; background: rgba(255,255,255,0.2); width: 60px; height: 60px; border-radius: 15px; display: flex; justify-content: center; align-items: center; }
-        .banner-pass { background: linear-gradient(to right, #111827, #1e3a8a); border: 1px solid var(--gold); border-radius: 15px; padding: 15px 25px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; box-shadow: 0 5px 20px rgba(250, 204, 21, 0.1); width: 100%; box-sizing: border-box;}
-
-        /* LOBBY SCREEN (SALA 3D) */
-        #lobby-screen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle at center, #1e293b 0%, #020617 100%); z-index: 105; display: none; flex-direction: column; transition: opacity 0.3s; padding-bottom: 75px; box-sizing: border-box; }
-        .lobby-header-new { display: flex; justify-content: space-between; align-items: center; padding: 20px; width: 100%; box-sizing: border-box; }
-        .btn-atras { background: rgba(255,255,255,0.1); border: none; color: white; padding: 8px 15px; border-radius: 8px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 5px; transition: 0.2s; }
-        .btn-atras:active { transform: scale(0.95); background: rgba(255,255,255,0.2); }
-        .lobby-title-new { position: absolute; width: 100%; text-align: center; left: 0; pointer-events: none; font-size: 1.3rem; font-weight: bold; letter-spacing: 2px; }
-        .lobby-stage { flex: 1; display: flex; justify-content: center; align-items: center; gap: 30px; margin-bottom: 20px; min-height: 150px;}
-        .pedestal-container { display: flex; flex-direction: column; align-items: center; gap: 10px; position: relative; }
-        .pedestal-oval { width: 120px; height: 35px; border-radius: 50%; border: 2px solid #4f46e5; background: radial-gradient(ellipse at center, rgba(79,70,229,0.2) 0%, transparent 70%); box-shadow: 0 0 15px rgba(79,70,229,0.3); position: absolute; bottom: 35px; z-index: 1; }
-        .pedestal-oval.center { width: 150px; height: 45px; border-color: #6366f1; box-shadow: 0 0 30px rgba(99,102,241,0.5); bottom: 30px; }
-        .pedestal-oval.empty { border-color: #475569; background: transparent; box-shadow: none; }
-        .pedestal-avatar-new { width: 75px; height: 75px; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 2.5rem; font-weight: bold; z-index: 2; position: relative; }
-        .pedestal-avatar-new.dashed { border: 3px dashed #9ca3af; background: rgba(255,255,255,0.05); color: #9ca3af; cursor: pointer; transition: 0.2s;}
-        .pedestal-avatar-new.solid { border: 4px solid white; background: var(--danger); box-shadow: 0 10px 20px rgba(0,0,0,0.5); color: white;}
-        .pedestal-avatar-new.guest { border: 4px solid white; background: var(--primary); box-shadow: 0 10px 20px rgba(0,0,0,0.5); color: white;}
-        .pedestal-tag { background: #1e293b; padding: 5px 15px; border-radius: 12px; font-size: 0.9rem; font-weight: bold; z-index: 2; margin-top: 45px; color: white;}
-        .pedestal-tag.gold { color: var(--gold); }
-        .player-status-lbl { font-size: 0.7rem; font-weight: bold; height: 10px; margin-top: 5px;}
-        .lobby-action-bar { width: 100%; padding: 20px; display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.6); border-top: 1px solid var(--border-color); backdrop-filter: blur(10px); box-sizing: border-box; flex-shrink: 0; }
-        .mode-select-btn { background: var(--panel-bg); border: 1px solid var(--border-color); padding: 10px 20px; border-radius: 12px; color: white; display: flex; flex-direction: column; cursor: pointer; transition: 0.2s;}
-        .play-btn-ready { color: white; border: none; padding: 15px 40px; border-radius: 15px; font-size: 1.3rem; font-weight: 900; cursor: pointer; text-transform: uppercase; box-shadow: 0 5px 15px rgba(0,0,0,0.4); transition: 0.2s; min-width: 160px;}
-        .play-btn-ready.start { background: var(--gold); color: black; }
-        .play-btn-ready.ready { background: var(--success); }
-        .play-btn-ready.cancel { background: var(--danger); }
-
-        /* NAV INFERIOR */
-        .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; height: 75px; background: var(--panel-bg); border-top: 1px solid var(--border-color); display: flex; justify-content: space-around; align-items: center; z-index: 150; padding-bottom: env(safe-area-inset-bottom); }
-        .nav-item { display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--text-muted); cursor: pointer; transition: color 0.2s; flex: 1; gap: 4px; }
-        .nav-item:hover, .nav-item.active { color: var(--primary); }
-        .nav-icon { font-size: 1.6rem; } .nav-label { font-size: 0.75rem; font-weight: bold; }
-
-        /* INTERFAZ DEL PARTIDO Y CANVAS */
-        #match-interface { display: none; flex-direction: column; align-items: center; justify-content: center; width: 100%; height: 100%; background: #000; }
-        .game-wrapper { position: relative; width: 100vw; height: 100vh; max-width: calc(100vh * (16/9)); max-height: calc(100vw * (9/16)); aspect-ratio: 16/9; background: #000; display: flex; justify-content: center; align-items: center; overflow: hidden; margin: auto;}
-        canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: block; box-sizing: border-box; }
-        #weather-overlay { z-index: 5; background: transparent; pointer-events: none;}
-        
-        /* MODO CAOS UI */
-        #chaos-banner { position: absolute; top: 120px; left: 50%; transform: translateX(-50%); font-size: 1.8rem; font-weight: 900; color: white; text-shadow: 2px 2px 0 #000, 0 0 15px var(--danger); z-index: 25; pointer-events: none; opacity: 0; transition: opacity 0.5s; text-transform: uppercase; letter-spacing: 2px;}
-        #chaos-banner.show { opacity: 1; animation: pulseBanner 0.5s infinite alternate; }
-        @keyframes pulseBanner { 0% { transform: translateX(-50%) scale(1); } 100% { transform: translateX(-50%) scale(1.1); } }
-
-        #match-ui-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 10; display: flex; flex-direction: column; justify-content: space-between; padding: 15px 20px; box-sizing: border-box; }
-        .match-top-bar { display: flex; justify-content: space-between; align-items: flex-start; pointer-events: auto; }
-        .match-btn-icon { background: rgba(255,255,255,0.15); border-radius: 12px; width: 40px; height: 40px; color: white; display: flex; justify-content: center; align-items: center; cursor: pointer; border: 1px solid rgba(255,255,255,0.2); font-weight: bold; font-size: 1.2rem; backdrop-filter: blur(4px);}
-        .match-scoreboard-container { display: flex; flex-direction: column; align-items: center; }
-        .match-scoreboard { background: rgba(0,0,0,0.6); padding: 8px 30px; border-radius: 20px; display: flex; gap: 8px; align-items: center; color: white; font-weight: bold; font-size: 1.1rem; border: 1px solid rgba(255,255,255,0.15); backdrop-filter: blur(4px);}
-        .match-scoreboard span.num { color: var(--danger); font-size: 1.3rem;}
-        .match-scoreboard span.num2 { color: var(--primary); font-size: 1.3rem;}
-        .match-scoreboard span.time { color: var(--gold); font-family: monospace; font-size: 1.3rem;}
-        .match-team-badges { display: flex; gap: 70px; margin-top: -8px; z-index: 12;}
-        .badge-home { background: var(--danger); font-size: 0.6rem; padding: 2px 10px; border-radius: 4px; color: white; font-weight: bold; box-shadow: 0 2px 5px rgba(0,0,0,0.5);}
-        .badge-away { background: var(--primary); font-size: 0.6rem; padding: 2px 10px; border-radius: 4px; color: white; font-weight: bold; box-shadow: 0 2px 5px rgba(0,0,0,0.5);}
-
-        /* CONTROLES MÓVILES EDITABLES */
-        .mobile-controls-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 20;}
-        .virtual-joystick { position: absolute; left: 40px; bottom: 30px; width: 140px; height: 140px; background: rgba(255,255,255,0.15); border-radius: 50%; border: 2px solid rgba(255,255,255,0.3); backdrop-filter: blur(4px); box-shadow: 0 5px 15px rgba(0,0,0,0.5); pointer-events: auto; touch-action: none; transform-origin: center;}
-        .joystick-knob { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 55px; height: 55px; background: rgba(255,255,255,0.5); border-radius: 50%; box-shadow: 0 5px 10px rgba(0,0,0,0.4), inset 0 0 10px rgba(255,255,255,0.5); pointer-events: none; transition: background 0.1s; }
-        
-        .action-buttons { position: absolute; right: 40px; bottom: 30px; width: 140px; height: 140px; pointer-events: auto; transform-origin: center; touch-action: none;}
-        .action-btn { position: absolute; border-radius: 50%; background: rgba(30, 64, 175, 0.6); border: 2px solid rgba(255,255,255,0.4); color: white; display: flex; flex-direction: column; justify-content: center; align-items: center; font-weight: bold; cursor: pointer; backdrop-filter: blur(4px); box-shadow: inset 0 0 15px rgba(255,255,255,0.2), 0 5px 15px rgba(0,0,0,0.5); user-select: none; touch-action: none;}
-        .action-kick { width: 70px; height: 70px; top: 10px; right: -10px; font-size: 0.7rem;}
-        .action-pass { width: 60px; height: 60px; bottom: -10px; left: 10px; font-size: 0.65rem;}
-        .action-sprint { width: 50px; height: 50px; top: -10px; left: -20px; font-size: 0.65rem; background: rgba(234, 179, 8, 0.7);} 
-        .action-icon { font-size: 1.2rem; margin-bottom: 2px;}
-
-        .emote-container { position: absolute; right: 200px; bottom: 30px; display: flex; flex-direction: column; align-items: center; pointer-events: auto; transform-origin: center; touch-action: none;}
-        .emote-btn-toggle { width: 45px; height: 45px; background: rgba(255,255,255,0.15); border-radius: 50%; border: 2px solid rgba(255,255,255,0.3); font-size: 1.5rem; display: flex; justify-content: center; align-items: center; backdrop-filter: blur(4px); cursor: pointer; color: white;}
-        .emote-menu { display: none; flex-direction: column; gap: 8px; margin-bottom: 10px; background: rgba(0,0,0,0.6); padding: 8px; border-radius: 25px; backdrop-filter: blur(4px); }
-        .emote-item { width: 40px; height: 40px; background: rgba(255,255,255,0.2); border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 1.5rem; cursor: pointer; }
-
-        /* HUD EDIT OVERLAY ADAPTABLE A MÓVILES */
-        #hud-edit-overlay { 
-            display: none; position: absolute; top: 10px; left: 50%; transform: translateX(-50%); 
-            z-index: 1000; background: rgba(0,0,0,0.85); padding: 10px; border-radius: 15px; 
-            border: 1px solid var(--gold); gap: 10px; align-items: center; pointer-events: auto; 
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5); width: 90%; max-width: 450px; 
-            justify-content: space-around; flex-wrap: wrap;
-        }
-        #hud-edit-overlay button {
-            font-size: 0.8rem; padding: 8px 12px; flex: 1; min-width: 100px; border-radius: 8px; border:none; font-weight:bold; cursor:pointer;
-        }
-        #hud-edit-overlay div {
-            font-size: 0.8rem; flex: 1; min-width: 120px; text-align: center; display:flex; flex-direction:column; align-items:center; color:var(--gold); font-weight:bold;
-        }
-
-        #replay-badge { position: absolute; top: 70px; left: 20px; background: rgba(239, 68, 68, 0.9); color: white; font-weight: bold; padding: 5px 15px; border-radius: 8px; font-family: monospace; font-size: 1.2rem; letter-spacing: 2px; display: none; z-index: 50; animation: blink 1s infinite; box-shadow: 0 4px 10px rgba(0,0,0,0.5);}
-        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
-        #goal-screen { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0); font-size: 5rem; font-weight: 900; color: #ffffff; text-align:center; text-transform: uppercase; text-shadow: 3px 3px 0 #000, 0 10px 20px rgba(0,0,0,0.8); z-index: 50; opacity: 0; pointer-events: none; transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.3s ease; }
-        #goal-screen.show { transform: translate(-50%, -50%) scale(1); opacity: 1; animation: pulse 1s infinite alternate; }
-
-        /* MODALES */
-        .overlay-screen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: var(--overlay); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 200; backdrop-filter: blur(8px); transition: opacity 0.3s ease; }
-        .modal-panel { background: var(--panel-bg); border: 1px solid var(--border-color); box-shadow: 0 25px 50px rgba(0,0,0,0.3); border-radius: 20px; padding: 25px; display: flex; flex-direction: column; gap: 15px; width: 90%; max-width: 450px; max-height: 85vh; overflow-y: auto; color: var(--text-color); }
-        .modal-panel h2 { margin: 0; text-align: center; }
-        .modal-panel input, .modal-panel select { padding: 12px; border-radius: 10px; border: 1px solid var(--border-color); font-size: 1rem; text-align: center; outline: none; background: var(--input-bg); color: var(--text-color); width: 100%; box-sizing: border-box;}
-        .main-btn { width: 100%; padding: 15px; font-size: 1.1rem; border-radius: 12px; border: none; cursor: pointer; font-weight: bold; transition: transform 0.2s; color: white; display:flex; justify-content:center; align-items:center; gap:10px;}
-        .main-btn:active { transform: scale(0.97); }
-        .btn-close { background: var(--card-bg); color: var(--text-color); border: 1px solid var(--border-color); margin-top: 10px;}
-
-        .tabs-header { display: flex; width: 100%; border-bottom: 1px solid var(--border-color); margin-bottom: 10px; overflow-x: auto; scrollbar-width: none;}
-        .tabs-header::-webkit-scrollbar { display: none; }
-        .tab-btn { flex: 1; padding: 10px; background: none; border: none; color: var(--text-muted); font-weight: bold; font-size: 0.9rem; cursor: pointer; transition: 0.3s; border-bottom: 2px solid transparent; white-space: nowrap;}
-        .tab-btn.active { color: var(--primary); border-bottom: 2px solid var(--primary); }
-        .btn-claim { background: var(--primary); color: white; border: none; padding: 10px 15px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 0.85rem;}
-        
-        .shop-timer { background: var(--input-bg); padding: 10px; border-radius: 10px; margin-bottom: 10px; font-weight: bold; color: var(--gold); border: 1px solid var(--gold); font-family: monospace; text-align: center;}
-        .shop-grid { display: flex; gap: 10px; margin-top: 10px; flex-wrap: wrap; justify-content: center; width: 100%;}
-        .shop-card { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 15px; padding: 15px 10px; text-align: center; width: 100px; box-sizing: border-box; }
-        .shop-card.equipped { border-color: var(--gold); box-shadow: 0 0 10px rgba(250, 204, 21, 0.3); }
-        .ball-preview { width: 40px; height: 40px; border-radius: 50%; margin: 0 auto 10px auto; border: 2px solid rgba(0,0,0,0.5); }
-        .card-btn { margin-top: 10px; width: 100%; padding: 6px 2px; font-size: 0.75rem; border-radius: 8px; border:none; font-weight:bold; cursor:pointer;}
-        
-        .friend-item { display: flex; align-items: center; gap: 12px; padding: 12px; background: var(--input-bg); border: 1px solid var(--border-color); border-radius: 12px; margin-bottom: 8px; }
-        .friend-avatar { width: 40px; height: 40px; border-radius: 10px; font-weight: bold; font-size: 1.2rem; display: flex; align-items: center; justify-content: center; position: relative; }
-        .status-circle { position: absolute; bottom: -2px; right: -2px; width: 12px; height: 12px; border-radius: 50%; border: 2px solid var(--input-bg); background-color: #f59e0b; }
-        .btn-small { padding: 8px 12px; font-size: 0.8rem; border: none; border-radius: 8px; cursor: pointer; font-weight:bold; color: white;}
-
-        #pass-modal { max-width: 900px; width: 95%; padding: 0; background: linear-gradient(to bottom, #0f172a, #020617); overflow: hidden; border: 1px solid var(--gold); }
-        .pass-header-img2 { display: flex; justify-content: space-between; align-items: center; padding: 20px; background: rgba(0,0,0,0.5); border-bottom: 1px solid rgba(255,255,255,0.1); }
-        .pass-body-img2 { display: flex; flex-direction: column; padding: 20px; gap: 20px; overflow-x: auto;}
-        @media(min-width:768px) { .pass-body-img2 { flex-direction: row; } }
-        .pass-track-wrapper { flex: 1; overflow-x: auto; padding-bottom: 20px; display: flex; align-items: center; }
-        .pass-track-line { display: flex; align-items: center; position: relative; padding: 0 20px;}
-        .pass-track-line::before { content: ''; position: absolute; top: 40%; left: 0; right: 0; height: 8px; background: linear-gradient(to right, #38bdf8, #818cf8); transform: translateY(-50%); border-radius: 4px; z-index: 1;}
-        .pass-node { display: flex; flex-direction: column; align-items: center; position: relative; z-index: 2; margin: 0 20px; min-width: 80px; }
-        .node-circle { width: 60px; height: 60px; background: linear-gradient(to bottom, #1e293b, #0f172a); border: 3px solid #94a3b8; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 1.5rem; box-shadow: 0 5px 15px rgba(0,0,0,0.5); transition: transform 0.2s;}
-        
-        #pack-animation-screen { background: rgba(0,0,0,0.98); z-index: 400; }
-        .pack-item { width: 140px; height: 200px; background: linear-gradient(135deg, #facc15, #b45309); border-radius: 15px; border: 3px solid white; display: flex; justify-content: center; align-items: center; font-size: 3rem; cursor: pointer; box-shadow: 0 0 30px rgba(250, 204, 21, 0.5); animation: floatPack 2s infinite ease-in-out; }
-        @keyframes floatPack { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-20px); } }
-        .pack-reveal-box { width: 160px; height: 220px; background: white; border-radius: 15px; display: none; flex-direction: column; align-items: center; justify-content: center; animation: popIn 0.5s ease-out forwards; box-shadow: 0 0 50px rgba(255,255,255,0.8); }
-        @keyframes popIn { 0% { transform: scale(0); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
-        
-        @media (max-width: 800px) { .player-name { display: none; } }
-    </style>
+    <meta charset=”UTF-8”>
+    <meta name=”viewport” content=”width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no”>
+    <title>FutCard Play – Edición Definitiva</title>
     
-    <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore-compat.js"></script>
-    <script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
+    <link rel=”stylesheet” href=”estilos.css”>
+    
+    <script src=https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js></script>
+    <script src=https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore-compat.js></script>
+    <script src=https://cdn.socket.io/4.7.4/socket.io.min.js></script>
 </head>
-<body class="dark-theme">
+<body class=”dark-theme”>
 
-    <div id="landscape-warning">
-        <div class="rotate-icon">📱</div>
-        <h2 style="margin:0 0 10px 0;" data-i18n="rotate_title">Gira tu dispositivo</h2>
-        <p style="color:var(--text-muted); max-width:80%;" data-i18n="rotate_desc">FutCard Play está diseñado para jugarse en modo horizontal.</p>
-        <button onclick="requestFullscreenAndLock()" style="margin-top:20px; background:var(--primary); color:white; border:none; padding:10px 20px; border-radius:8px; font-weight:bold; cursor:pointer;" data-i18n="btn_fullscreen">Forzar Pantalla</button>
+    <div id=”landscape-warning”>
+        <div class=”rotate-icon”>📱</div>
+        <h2 style=”margin:0 0 10px 0;” data-i18n=”rotate_title”>Gira tu dispositivo</h2>
+        <p style=”color:var(--text-muted); max-width:80%;” data-i18n=”rotate_desc”>FutCard Play está diseñado para jugarse en modo horizontal.</p>
+        <button onclick=”requestFullscreenAndLock()” style=”margin-top:20px; background:var(--primary); color:white; border:none; padding:10px 20px; border-radius:8px; font-weight:bold; cursor:pointer;” data-i18n=”btn_fullscreen”>Forzar Pantalla</button>
     </div>
 
-    <div id="login-screen" class="overlay-screen" style="display: none; opacity: 0; z-index: 999; background: var(--bg-app);">
-        <div class="modal-panel" style="background: var(--panel-bg); color: var(--text-color); max-width: 350px;">
-            <div style="text-align: center; font-size: 3rem; margin-bottom: -10px;">⚽</div>
-            <h2 id="auth-title" style="margin: 0; color: var(--gold);">Iniciar Sesión</h2>
-            <p id="auth-desc" style="font-size:0.8rem; color:var(--text-muted); text-align:center;">Guarda tu progreso y juega con amigos online</p>
+    <div id=”login-screen” class=”overlay-screen” style=”display: none; opacity: 0; z-index: 999; background: var(--bg-app);”>
+        <div class=”modal-panel” style=”background: var(--panel-bg); color: var(--text-color); max-width: 350px;”>
+            <div style=”text-align: center; font-size: 3rem; margin-bottom: -10px;”>⚽</div>
+            <h2 id=”auth-title” style=”margin: 0; color: var(--gold);”>Iniciar Sesión</h2>
+            <p id=”auth-desc” style=”font-size:0.8rem; color:var(--text-muted); text-align:center;”>Guarda tu progreso y juega con amigos online</p>
             
-            <input type="email" id="login-email" placeholder="Correo electrónico" style="background:var(--input-bg); color:var(--text-color); border: 1px solid var(--border-color);">
-            <input type="password" id="login-pass" placeholder="Contraseña" style="background:var(--input-bg); color:var(--text-color); border: 1px solid var(--border-color);">
-            <input type="password" id="login-pass-confirm" placeholder="Confirmar Contraseña" style="background:var(--input-bg); color:var(--text-color); border: 1px solid var(--border-color); display:none;">
+            <input type=”email” id=”login-email” placeholder=”Correo electrónico” style=”background:var(--input-bg); color:var(--text-color); border: 1px solid var(--border-color);”>
+            <input type=”password” id=”login-pass” placeholder=”Contraseña” style=”background:var(--input-bg); color:var(--text-color); border: 1px solid var(--border-color);”>
+            <input type=”password” id=”login-pass-confirm” placeholder=”Confirmar Contraseña” style=”background:var(--input-bg); color:var(--text-color); border: 1px solid var(--border-color); display:none;”>
             
-            <div style="display: flex; gap: 10px; width: 100%; margin-top: 10px;">
-                <button class="main-btn" id="btn-auth-cancel" style="background: var(--danger); padding: 10px;" onclick="closeLoginIfGuest()">Jugar como Invitado</button>
-                <button class="main-btn" id="btn-auth-action" style="background: var(--primary); padding: 10px;" onclick="processAuth()">Entrar</button>
+            <div style=”display: flex; gap: 10px; width: 100%; margin-top: 10px;”>
+                <button class=”main-btn” id=”btn-auth-cancel” style=”background: var(--danger); padding: 10px;” onclick=”closeLoginIfGuest()”>Jugar como Invitado</button>
+                <button class=”main-btn” id=”btn-auth-action” style=”background: var(--primary); padding: 10px;” onclick=”processAuth()”>Entrar</button>
             </div>
             
-            <button class="btn-google" onclick="simulateGoogleLogin()" style="background:white; color:#333; padding:12px; border-radius:10px; border:none; width:100%; font-weight:bold; cursor:pointer; display:flex; justify-content:center; align-items:center; gap:10px; margin-top:10px;">
-                <svg viewBox="0 0 24 24" style="width:20px;height:20px;"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
+            <button class=”btn-google” onclick=”simulateGoogleLogin()” style=”background:white; color:#333; padding:12px; border-radius:10px; border:none; width:100%; font-weight:bold; cursor:pointer; display:flex; justify-content:center; align-items:center; gap:10px; margin-top:10px;”>
+                <svg viewBox=”0 0 24 24” style=”width:20px;height:20px;”><path d=”M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z” fill=”#4285F4”/><path d=”M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z” fill=”#34ª853”/><path d=”M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z” fill=”#FBBC05”/><path d=”M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z” fill=”#EA4335”/></svg>
                 Continuar con Google
             </button>
             
-            <div style="text-align:center; margin-top:15px; font-size:0.9rem;">
-                <a href="#" id="auth-toggle-link" style="color:var(--diamond); text-decoration:none;" onclick="toggleAuthMode()">¿No tienes cuenta? Regístrate</a>
+            <div style=”text-align:center; margin-top:15px; font-size:0.9rem;”>
+                <a href=”#” id=”auth-toggle-link” style=”color:var(--diamond); text-decoration:none;” onclick=”toggleAuthMode()”>¿No tienes cuenta? Regístrate</a>
             </div>
         </div>
     </div>
 
-    <div id="notif-screen" class="overlay-screen" style="display: none; opacity: 0; z-index: 205;">
-        <div class="modal-panel" style="max-width: 450px; padding:0; overflow:hidden; background: var(--bg-app);">
-            <div style="padding: 15px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color);">
-                <h2 style="margin:0; font-size:1.3rem; display:flex; align-items:center; gap:10px;">🔔 Notificaciones</h2>
+    <div id=”notif-screen” class=”overlay-screen” style=”display: none; opacity: 0; z-index: 205;”>
+        <div class=”modal-panel” style=”max-width: 450px; padding:0; overflow:hidden; background: var(--bg-app);”>
+            <div style=”padding: 15px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color);”>
+                <h2 style=”margin:0; font-size:1.3rem; display:flex; align-items:center; gap:10px;”>🔔 Notificaciones</h2>
             </div>
-            <div id="notif-list" style="width: 100%; max-height: 50vh; overflow-y: auto; padding: 15px; box-sizing: border-box;">
+            <div id=”notif-list” style=”width: 100%; max-height: 50vh; overflow-y: auto; padding: 15px; box-sizing: border-box;”>
                 </div>
-            <div style="padding:15px; border-top:1px solid var(--border-color); background:var(--panel-bg); width:100%; box-sizing:border-box;">
-                <button class="main-btn btn-close" style="margin:0;" onclick="closeScreen('notif-screen')">Cerrar</button>
+            <div style=”padding:15px; border-top:1px solid var(--border-color); background:var(--panel-bg); width:100%; box-sizing:border-box;”>
+                <button class=”main-btn btn-close” style=”margin:0;” onclick=”closeScreen(‘notif-screen’)”>Cerrar</button>
             </div>
         </div>
     </div>
 
-    <div id="friend-profile-screen" class="overlay-screen" style="display: none; opacity: 0; z-index: 210;">
-        <div class="modal-panel" style="max-width: 400px; text-align: center;">
-            <div class="avatar-pill" id="fp-avatar" style="width: 80px; height: 80px; font-size: 3rem; margin: 0 auto;">J</div>
-            <h2 id="fp-name" style="margin: 10px 0 5px 0;">Jugador</h2>
-            <div style="color:var(--gold); font-family:monospace; margin-bottom: 10px;">Código: <span id="fp-code">123456</span></div>
-            <div id="fp-status" style="font-weight: bold; margin-bottom: 20px; color: var(--text-muted);">Última vez: ---</div>
+    <div id=”friend-profile-screen” class=”overlay-screen” style=”display: none; opacity: 0; z-index: 210;”>
+        <div class=”modal-panel” style=”max-width: 400px; text-align: center;”>
+            <div class=”avatar-pill” id=”fp-avatar” style=”width: 80px; height: 80px; font-size: 3rem; margin: 0 auto;”>J</div>
+            <h2 id=”fp-name” style=”margin: 10px 0 5px 0;”>Jugador</h2>
+            <div style=”color:var(--gold); font-family:monospace; margin-bottom: 10px;”>Código: <span id=”fp-code”>123456</span></div>
+            <div id=”fp-status” style=”font-weight: bold; margin-bottom: 20px; color: var(--text-muted);”>Última vez: ---</div>
             
-            <button class="main-btn" style="background:var(--primary); margin-bottom: 10px;" onclick="challengeOnlineFromProfile()">🎮 Desafiar</button>
-            <button class="main-btn" style="background:var(--danger); margin-bottom: 10px;" onclick="deleteFriendFromProfile()">🗑️ Eliminar Amigo</button>
-            <button class="main-btn btn-close" onclick="closeScreen('friend-profile-screen')">Cerrar</button>
+            <button class=”main-btn” id=”fp-action-btn” style=”background:var(--primary); margin-bottom: 10px;” onclick=”inviteToLobbyFromProfile()”>🎮 Invitar al grupo</button>
+            <button class=”main-btn” style=”background:var(--danger); margin-bottom: 10px;” onclick=”deleteFriendFromProfile()”>🗑️ Eliminar Amigo</button>
+            <button class=”main-btn btn-close” onclick=”closeScreen(‘friend-profile-screen’)”>Cerrar</button>
         </div>
     </div>
 
-    <div id="lobby-screen">
-        <div class="lobby-header-new">
-            <button class="btn-atras" onclick="goHome()">❮ Atrás</button>
-            <div class="lobby-title-new">SALA DE JUEGO</div>
-            <button class="btn-atras" style="background:var(--primary);" onclick="openCasillero()">🎒 Casillero</button>
+    <div id=”lobby-screen”>
+        <div class=”lobby-header-new”>
+            <button class=”btn-atrás” onclick=”goHome()”>❮ Atrás</button>
+            <div class=”lobby-title-new”>SALA DE JUEGO</div>
+            <button class=”btn-atrás” style=”background:var(--primary);” onclick=”openCasillero()”>🎒 Casillero</button>
         </div>
-        <div class="lobby-stage">
-            <div class="pedestal-container"><div class="pedestal-oval"></div><div class="pedestal-avatar-new dashed" onclick="openScreen('friends-screen'); renderFriends();">+</div><div class="pedestal-tag">Invitar</div></div>
-            <div class="pedestal-container" style="transform: scale(1.15); z-index: 10; margin-bottom: 20px;"><div class="pedestal-oval center"></div><div class="pedestal-avatar-new solid" id="lobby-p1-av">J</div><div class="pedestal-tag gold" id="lobby-p1-name">Jugador</div><div id="lobby-p1-status" class="player-status-lbl" style="color:var(--success)">LISTO</div></div>
-            <div class="pedestal-container" id="lobby-guest-container"><div class="pedestal-oval empty" id="lobby-p2-oval"></div><div class="pedestal-avatar-new empty" id="lobby-p2-av"></div><div class="pedestal-tag" id="lobby-p2-name">---</div><div id="lobby-p2-status" class="player-status-lbl"></div></div>
+        <div class=”lobby-stage”>
+            <div class=”pedestal-container”><div class=”pedestal-oval”></div><div class=”pedestal-avatar-new dashed” onclick=”friendScreenContext = ‘lobby’; openScreen(‘friends-screen’); renderFriends();”>+</div><div class=”pedestal-tag”>Invitar</div></div>
+            <div class=”pedestal-container” style=”transform: scale(1.15); z-index: 10; margin-bottom: 20px;”><div class=”pedestal-oval center”></div><div class=”pedestal-avatar-new solid” id=”lobby-p1-av”>J</div><div class=”pedestal-tag gold” id=”lobby-p1-name”>Jugador</div><div id=”lobby-p1-status” class=”player-status-lbl” style=”color:var(--success)”>LISTO</div></div>
+            <div class=”pedestal-container” id=”lobby-guest-container”><div class=”pedestal-oval empty” id=”lobby-p2-oval”></div><div class=”pedestal-avatar-new empty” id=”lobby-p2-av”></div><div class=”pedestal-tag” id=”lobby-p2-name”>---</div><div id=”lobby-p2-status” class=”player-status-lbl”></div></div>
         </div>
-        <div class="lobby-action-bar">
-            <div class="mode-select-btn" onclick="openScreen('mode-select-screen')"><span style="font-size: 0.7rem; color: var(--gold); font-weight: bold;">MODO DE JUEGO</span><span id="lobby-mode-display" style="font-size: 1.1rem; font-weight: bold;">👤 Normal vs IA</span></div>
-            <button id="btn-lobby-action" class="play-btn-ready start" onclick="handleLobbyAction()">¡JUGAR!</button>
+        <div class=”lobby-action-bar”>
+            <div class=”mode-select-btn” onclick=”openScreen(‘mode-select-screen’)”><span style=”font-size: 0.7rem; color: var(--gold); font-weight: bold;”>MODO DE JUEGO</span><span id=”lobby-mode-display” style=”font-size: 1.1rem; font-weight: bold;”>👤 Normal vs IA</span></div>
+            <button id=”btn-lobby-action” class=”play-btn-ready start” onclick=”handleLobbyAction()”>¡JUGAR!</button>
         </div>
     </div>
 
-    <div id="dashboard-screen">
-        <div class="dash-header">
-            <div class="dash-logo">⚽ FutCard Play</div>
-            <div class="dash-stats-bar">
-                <div class="stat-pill" onclick="openScreen('notif-screen')" style="cursor:pointer; position:relative;">🔔 <span id="notif-badge" style="background:var(--danger); color:white; border-radius:50%; padding:2px 6px; font-size:0.7rem; position:absolute; top:-5px; right:-5px; display:none;">0</span></div>
+    <div id=”dashboard-screen”>
+        <div class=”dash-header”>
+            <div class=”dash-logo”>⚽ FutCard Play</div>
+            <div class=”dash-stats-bar”>
+                <div class=”stat-pill” onclick=”openScreen(‘notif-screen’)” style=”cursor:pointer; position:relative;”>🔔 <span id=”notif-badge” style=”background:var(--danger); color:white; border-radius:50%; padding:2px 6px; font-size:0.7rem; position:absolute; top:-5px; right:-5px; display:none;”>0</span></div>
                 
-                <div class="stat-pill" style="color: var(--diamond);">💎 <span id="dash-dia">0</span></div>
-                <div class="stat-pill" style="color: var(--gold);">⭐ <span id="dash-stars">0</span></div>
-                <div class="stat-pill" style="color: var(--gold);">🪙 <span id="dash-coins">0</span></div>
-                <div class="avatar-pill" id="dash-avatar">J</div>
+                <div class=”stat-pill” style=”color: var(--diamond);”>💎 <span id=”dash-dia”>0</span></div>
+                <div class=”stat-pill” style=”color: var(--gold);”>⭐ <span id=”dash-stars”>0</span></div>
+                <div class=”stat-pill” style=”color: var(--gold);”>🪙 <span id=”dash-coins”>0</span></div>
+                <div class=”avatar-pill” id=”dash-avatar”>J</div>
             </div>
         </div>
-        <div class="dash-content">
-            <div class="profile-card">
-                <div class="welcome-text" data-i18n="welcome">Bienvenido de vuelta,</div>
-                <div class="dash-username" id="dash-username">Jugador 1</div>
-                <div class="dash-code"><span data-i18n="friend_code">Código de amigo:</span> <span id="dash-friend-code">------</span></div>
-                <div class="card-stats">
-                    <span style="color: var(--gold);">🪙 <span id="dash-card-coins">0</span></span>
-                    <span style="color: var(--diamond);">💎 <span id="dash-card-dia">0</span></span>
-                    <span style="color: var(--gold);">⭐ <span id="dash-card-stars">0</span></span>
+        <div class=”dash-content”>
+            <div class=”profile-card”>
+                <div class=”welcome-text” data-i18n=”welcome”>Bienvenido de vuelta,</div>
+                <div class=”dash-username” id=”dash-username”>Jugador 1</div>
+                <div class=”dash-code”><span data-i18n=”friend_code”>Código de amigo:</span> <span id=”dash-friend-code”>------</span></div>
+                <div class=”card-stats”>
+                    <span style=”color: var(--gold);”>🪙 <span id=”dash-card-coins”>0</span></span>
+                    <span style=”color: var(--diamond);”>💎 <span id=”dash-card-dia”>0</span></span>
+                    <span style=”color: var(--gold);”>⭐ <span id=”dash-card-stars”>0</span></span>
                 </div>
-                <div class="level-badge">🏅 <span data-i18n="level">Niv.</span> <span id="dash-level">1</span></div>
-                <div class="xp-bar-container"><div class="xp-bar-fill" id="dash-xp-fill"></div></div>
-                <div class="xp-text"><span id="dash-xp-text">0 / 100</span> XP</div>
+                <div class=”level-badge”>🏅 <span data-i18n=”level”>Niv.</span> <span id=”dash-level”>1</span></div>
+                <div class=”xp-bar-container”><div class=”xp-bar-fill” id=”dash-xp-fill”></div></div>
+                <div class=”xp-text”><span id=”dash-xp-text”>0 / 100</span> XP</div>
             </div>
-            <div style="display:flex; flex-direction:column; flex:1; gap:10px;">
-                <div class="play-card" onclick="openLobby()">
-                    <div class="play-info"><div class="play-icon">🏟️</div><div><div class="play-title" data-i18n="play_btn">¡Jugar!</div><div class="play-subtitle" data-i18n="play_desc">Gol de oro, clima y replays</div></div></div>
-                    <div style="font-size:1.5rem; color:rgba(255,255,255,0.5);">❯</div>
+            <div style=”display:flex; flex-direction:column; flex:1; gap:10px;”>
+                <div class=”play-card” onclick=”openLobby()”>
+                    <div class=”play-info”><div class=”play-icon”>🏟️</div><div><div class=”play-title” data-i18n=”play_btn”>¡Jugar!</div><div class=”play-subtitle” data-i18n=”play_desc”>Gol de oro, clima y replays</div></div></div>
+                    <div style=”font-size:1.5rem; color:rgba(255,255,255,0.5);”>❯</div>
                 </div>
-                <div class="banner-pass" onclick="openScreen('pass-screen'); renderPass();">
-                    <div><h3 data-i18n="pass_title">Pase Estelar</h3><p style="color: rgba(255,255,255,0.8); margin:0; font-size:0.9rem;">Desbloquea recompensas</p></div>
-                    <div style="font-size:2rem;">🎫</div>
+                <div class=”banner-pass” onclick=”openScreen(‘pass-screen’); renderPass();”>
+                    <div><h3 data-i18n=”pass_title”>Pase Estelar</h3><p style=”color: rgba(255,255,255,0.8); margin:0; font-size:0.9rem;”>Desbloquea recompensas</p></div>
+                    <div style=”font-size:2rem;”>🎫</div>
                 </div>
 
-                <div id="logros-alcanzados" style="background: var(--panel-bg); border-radius: 15px; padding: 20px; border: 1px solid var(--border-color); margin-top: 10px; width: 100%; box-sizing: border-box;">
-                    <h3 style="margin: 0 0 15px 0; color: var(--gold); font-size: 1.1rem;">🏆 Logros Alcanzados</h3>
-                    <div style="display: flex; gap: 10px; overflow-x: auto; scrollbar-width: none; padding-bottom: 5px;">
-                        <div style="background: rgba(34, 197, 94, 0.1); border: 1px solid var(--success); padding: 10px; border-radius: 10px; min-width: 100px; text-align: center;">
-                            <div style="font-size: 1.5rem;">🌟</div>
-                            <div style="font-size: 0.75rem; font-weight: bold; margin-top: 5px;">Primeros Pasos</div>
+                <div id=”logros-alcanzados” style=”background: var(--panel-bg); border-radius: 15px; padding: 20px; border: 1px solid var(--border-color); margin-top: 10px; width: 100%; box-sizing: border-box;”>
+                    <h3 style=”margin: 0 0 15px 0; color: var(--gold); font-size: 1.1rem;”>🏆 Logros Alcanzados</h3>
+                    <div style=”display: flex; gap: 10px; overflow-x: auto; scrollbar-width: none; padding-bottom: 5px;”>
+                        <div style=”background: rgba(34, 197, 94, 0.1); border: 1px solid var(--success); padding: 10px; border-radius: 10px; min-width: 100px; text-align: center;”>
+                            <div style=”font-size: 1.5rem;”>🌟</div>
+                            <div style=”font-size: 0.75rem; font-weight: bold; margin-top: 5px;”>Primeros Pasos</div>
                         </div>
-                        <div style="background: rgba(59, 130, 246, 0.1); border: 1px solid var(--primary); padding: 10px; border-radius: 10px; min-width: 100px; text-align: center;">
-                            <div style="font-size: 1.5rem;">⚽</div>
-                            <div style="font-size: 0.75rem; font-weight: bold; margin-top: 5px;">Goleador</div>
+                        <div style=”background: rgba(59, 130, 246, 0.1); border: 1px solid var(--primary); padding: 10px; border-radius: 10px; min-width: 100px; text-align: center;”>
+                            <div style=”font-size: 1.5rem;”>⚽</div>
+                            <div style=”font-size: 0.75rem; font-weight: bold; margin-top: 5px;”>Goleador</div>
                         </div>
-                        <div style="background: rgba(255, 255, 255, 0.05); border: 1px dashed var(--text-muted); padding: 10px; border-radius: 10px; min-width: 100px; text-align: center; opacity: 0.6;">
-                            <div style="font-size: 1.5rem;">🤝</div>
-                            <div style="font-size: 0.75rem; font-weight: bold; margin-top: 5px;">Sociable</div>
+                        <div style=”background: rgba(255, 255, 255, 0.05); border: 1px dashed var(--text-muted); padding: 10px; border-radius: 10px; min-width: 100px; text-align: center; opacity: 0.6;”>
+                            <div style=”font-size: 1.5rem;”>🤝</div>
+                            <div style=”font-size: 0.75rem; font-weight: bold; margin-top: 5px;”>Sociable</div>
                         </div>
                     </div>
                 </div>
@@ -330,1288 +146,296 @@
         </div>
     </div>
 
-    <div class="bottom-nav" id="bottom-nav">
-        <div class="nav-item active" onclick="goHome()"><div class="nav-icon">🏠</div><div class="nav-label" data-i18n="nav_home">Inicio</div></div>
-        <div class="nav-item" onclick="openEquipo()"><div class="nav-icon">📋</div><div class="nav-label" data-i18n="nav_team">Misiones</div></div>
-        <div class="nav-item" onclick="openScreen('friends-screen'); renderFriends();"><div class="nav-icon">🤝</div><div class="nav-label" data-i18n="nav_social">Social</div></div>
-        <div class="nav-item" onclick="openLobby()"><div class="nav-icon">⚽</div><div class="nav-label" data-i18n="nav_play">Jugar</div></div>
-        <div class="nav-item" onclick="openShop()"><div class="nav-icon">🛒</div><div class="nav-label" data-i18n="nav_shop">Tienda</div></div>
-        <div class="nav-item" onclick="openSettings()"><div class="nav-icon">⚙️</div><div class="nav-label" data-i18n="nav_settings">Ajustes</div></div>
+    <div class=”bottom-nav” id=”bottom-nav”>
+        <div class=”nav-item active” onclick=”goHome()”><div class=”nav-icon”>🏠</div><div class=”nav-label” data-i18n=”nav_home”>Inicio</div></div>
+        <div class=”nav-item” onclick=”openEquipo()”><div class=”nav-icon”>📋</div><div class=”nav-label” data-i18n=”nav_team”>Misiones</div></div>
+        <div class=”nav-item” onclick=”friendScreenContext = ‘social’; openScreen(‘friends-screen’); renderFriends();”><div class=”nav-icon”>🤝</div><div class=”nav-label” data-i18n=”nav_social”>Social</div></div>
+        <div class=”nav-item” onclick=”openLobby()”><div class=”nav-icon”>⚽</div><div class=”nav-label” data-i18n=”nav_play”>Jugar</div></div>
+        <div class=”nav-item” onclick=”openShop()”><div class=”nav-icon”>🛒</div><div class=”nav-label” data-i18n=”nav_shop”>Tienda</div></div>
+        <div class=”nav-item” onclick=”openSettings()”><div class=”nav-icon”>⚙️</div><div class=”nav-label” data-i18n=”nav_settings”>Ajustes</div></div>
     </div>
 
-    <div id="match-interface">
-        <div class="game-wrapper">
-            <canvas id="weather-overlay" width="1000" height="500"></canvas>
-            <canvas id="gameCanvas" width="1000" height="500"></canvas>
+    <div id=”match-interface”>
+        <div class=”game-wrapper”>
+            <canvas id=”weather-overlay” width=”1000” height=”500”></canvas>
+            <canvas id=”gameCanvas” width=”1000” height=”500”></canvas>
             
-            <div id="chaos-banner"></div>
+            <div id=”chaos-banner”></div>
 
-            <div id="match-ui-layer">
-                <div class="match-top-bar">
-                    <button class="match-btn-icon" onclick="abandonMatch()">←</button>
-                    <div class="match-scoreboard-container">
-                        <div class="match-scoreboard">
-                            SCORE: <span class="num" id="score1">0</span> - <span class="num2" id="score2">0</span> &bull; 
-                            <span id="half-indicator">1er TIEMPO</span> &bull; 
-                            TIME: <span class="time" id="timer">01:30</span>
+            <div id=”match-ui-layer”>
+                <div class=”match-top-bar”>
+                    <button class=”match-btn-icon” onclick=”abandonMatch()”>←</button>
+                    <div class=”match-scoreboard-container”>
+                        <div class=”match-scoreboard”>
+                            SCORE: <span class=”num” id=”score1”>0</span> - <span class=”num2” id=”score2”>0</span> &bull; 
+                            <span id=”half-indicator”>1er TIEMPO</span> &bull; 
+                            TIME: <span class=”time” id=”timer”>01:30</span>
                         </div>
-                        <div class="match-team-badges">
-                            <span class="badge-home" data-i18n="badge_home">LOCAL</span>
-                            <span class="badge-away" data-i18n="badge_away">VISIT.</span>
+                        <div class=”match-team-badges”>
+                            <span class=”badge-home” data-i18n=”badge_home”>LOCAL</span>
+                            <span class=”badge-away” data-i18n=”badge_away”>VISIT.</span>
                         </div>
                     </div>
-                    <button class="match-btn-icon" onclick="togglePause()">⏸</button>
+                    <button class=”match-btn-icon” onclick=”togglePause()”>⏸</button>
                 </div>
                 
-                <div class="mobile-controls-layer">
-                    <div class="virtual-joystick" id="virtual-joystick">
-                        <div class="joystick-knob" id="joystick-knob"></div>
+                <div class=”mobile-controls-layer”>
+                    <div class=”virtual-joystick” id=”virtual-joystick”>
+                        <div class=”joystick-knob” id=”joystick-knob”></div>
                     </div>
                     
-                    <div class="emote-container" id="emote-container-box">
-                        <div class="emote-menu" id="emote-menu">
-                            <div class="emote-item" onclick="sendEmote('😂')">😂</div>
-                            <div class="emote-item" onclick="sendEmote('😡')">😡</div>
-                            <div class="emote-item" onclick="sendEmote('😱')">😱</div>
-                            <div class="emote-item" onclick="sendEmote('🏆')">🏆</div>
+                    <div class=”emote-container” id=”emote-container-box”>
+                        <div class=”emote-menu” id=”emote-menu”>
+                            <div class=”emote-item” onclick=”sendEmote(‘😂’)”>😂</div>
+                            <div class=”emote-item” onclick=”sendEmote(‘😡’)”>😡</div>
+                            <div class=”emote-item” onclick=”sendEmote(‘😱’)”>😱</div>
+                            <div class=”emote-item” onclick=”sendEmote(‘🏆’)”>🏆</div>
                         </div>
-                        <div class="emote-btn-toggle" onclick="toggleEmoteMenu()">💬</div>
+                        <div class=”emote-btn-toggle” onclick=”toggleEmoteMenu()”>💬</div>
                     </div>
 
-                    <div class="action-buttons" id="action-buttons-box">
-                        <div id="btn-sprint" class="action-btn action-sprint"><span class="action-icon">⚡</span>SPRINT</div>
-                        <div id="btn-kick" class="action-btn action-kick"><span class="action-icon">👟</span>KICK</div>
-                        <div id="btn-pass" class="action-btn action-pass"><span class="action-icon">🎯</span>PASS</div>
+                    <div class=”action-buttons” id=”action-buttons-box”>
+                        <div id=”btn-sprint” class=”action-btn action-sprint”><span class=”action-icon”>⚡</span>SPRINT</div>
+                        <div id=”btn-kick” class=”action-btn action-kick”><span class=”action-icon”>👟</span>KICK</div>
+                        <div id=”btn-pass” class=”action-btn action-pass”><span class=”action-icon”>🎯</span>PASS</div>
                     </div>
                 </div>
             </div>
             
-            <div id="replay-badge">REPLAY</div>
-            <div id="goal-screen">⚽</div>
+            <div id=”replay-badge”>REPLAY</div>
+            <div id=”goal-screen”>⚽</div>
             
-            <div id="hud-edit-overlay">
-                <button onclick="resetHUD()" style="background:var(--danger); color:white;">Restablecer</button>
-                <div>TAMAÑO: <input type="range" id="hud-scale-slider" min="0.5" max="2" step="0.1" value="1" oninput="updateHUDScale(this.value)"></div>
-                <button onclick="saveHUD()" style="background:var(--success); color:white;">Guardar</button>
+            <div id=”hud-edit-overlay”>
+                <button onclick=”resetHUD()” style=”background:var(--danger); color:white;”>Restablecer</button>
+                <div>TAMAÑO: <input type=”range” id=”hud-scale-slider” min=”0.5” max=”2” step=”0.1” value=”1” oninput=”updateHUDScale(this.value)”></div>
+                <button onclick=”saveHUD()” style=”background:var(--success); color:white;”>Guardar</button>
             </div>
         </div>
     </div>
 
-    <div id="diff-select-screen" class="overlay-screen" style="display: none; opacity: 0;">
-        <div class="modal-panel" style="max-width: 350px;">
+    <div id=”diff-select-screen” class=”overlay-screen” style=”display: none; opacity: 0;”>
+        <div class=”modal-panel” style=”max-width: 350px;”>
             <h2>Dificultad IA</h2>
-            <div style="display:flex; flex-direction:column; gap:5px; width:100%; max-height: 45vh; overflow-y:auto;">
-                <button class="main-btn" style="background:#16a34a; padding:10px;" onclick="startAI(1)">1 - Muy fácil</button>
-                <button class="main-btn" style="background:#22c55e; padding:10px;" onclick="startAI(2)">2 - Fácil</button>
-                <button class="main-btn" style="background:#3b82f6; padding:10px;" onclick="startAI(3)">3 - Novato</button>
-                <button class="main-btn" style="background:#6366f1; padding:10px;" onclick="startAI(4)">4 - Principiante</button>
-                <button class="main-btn" style="background:#8b5cf6; padding:10px;" onclick="startAI(5)">5 - Medio</button>
-                <button class="main-btn" style="background:#f59e0b; padding:10px;" onclick="startAI(6)">6 - Difícil</button>
-                <button class="main-btn" style="background:#ea580c; padding:10px;" onclick="startAI(7)">7 - Muy difícil</button>
-                <button class="main-btn" style="background:#ef4444; padding:10px;" onclick="startAI(8)">8 - Avanzado</button>
-                <button class="main-btn" style="background:#b91c1c; padding:10px;" onclick="startAI(9)">9 - Experto</button>
+            <div style=”display:flex; flex-direction:column; gap:5px; width:100%; max-height: 45vh; overflow-y:auto;”>
+                <button class=”main-btn” style=”background:#16ª34a; padding:10px;” onclick=”startAI(1)”>1 – Muy fácil</button>
+                <button class=”main-btn” style=”background:#22c55e; padding:10px;” onclick=”startAI(2)”>2 – Fácil</button>
+                <button class=”main-btn” style=”background:#3b82f6; padding:10px;” onclick=”startAI(3)”>3 – Novato</button>
+                <button class=”main-btn” style=”background:#6366f1; padding:10px;” onclick=”startAI(4)”>4 – Principiante</button>
+                <button class=”main-btn” style=”background:#8b5cf6; padding:10px;” onclick=”startAI(5)”>5 – Medio</button>
+                <button class=”main-btn” style=”background:#f59e0b; padding:10px;” onclick=”startAI(6)”>6 – Difícil</button>
+                <button class=”main-btn” style=”background:#ea580c; padding:10px;” onclick=”startAI(7)”>7 – Muy difícil</button>
+                <button class=”main-btn” style=”background:#ef4444; padding:10px;” onclick=”startAI(8)”>8 – Avanzado</button>
+                <button class=”main-btn” style=”background:#b91c1c; padding:10px;” onclick=”startAI(9)”>9 – Experto</button>
             </div>
-            <button class="main-btn btn-close" onclick="closeScreen('diff-select-screen')">Cancelar</button>
+            <button class=”main-btn btn-close” onclick=”closeScreen(‘diff-select-screen’)”>Cancelar</button>
         </div>
     </div>
 
-    <div id="mode-select-screen" class="overlay-screen" style="display: none; opacity: 0;">
-        <div class="modal-panel" style="max-width: 600px;">
-            <h2 data-i18n="select_mode">Selecciona un Modo</h2>
-            <div style="display:flex; width:100%; gap:20px; flex-wrap: wrap;">
-                <div style="flex:1; display:flex; flex-direction:column; gap:10px; min-width:200px;">
-                    <h3 style="color:var(--gold); border-bottom:1px solid var(--border-color); padding-bottom:5px; margin:0;">SOLITARIO</h3>
-                    <button class="main-btn" style="background:var(--primary); padding:10px;" onclick="setLobbyMode('pve', 'normal', '👤 Normal vs IA')">Normal vs IA</button>
-                    <button class="main-btn" style="background:var(--gold); color:black; padding:10px;" onclick="setLobbyMode('pve', 'golden', '🏆 Gol de Oro vs IA')">Gol de Oro vs IA</button>
+    <div id=”mode-select-screen” class=”overlay-screen” style=”display: none; opacity: 0;”>
+        <div class=”modal-panel” style=”max-width: 600px;”>
+            <h2 data-i18n=”select_mode”>Selecciona un Modo</h2>
+            <div style=”display:flex; width:100%; gap:20px; flex-wrap: wrap;”>
+                <div style=”flex:1; display:flex; flex-direction:column; gap:10px; min-width:200px;”>
+                    <h3 style=”color:var(--gold); border-bottom:1px solid var(--border-color); padding-bottom:5px; margin:0;”>SOLITARIO</h3>
+                    <button class=”main-btn” style=”background:var(--primary); padding:10px;” onclick=”setLobbyMode(‘pve’, ‘normal’, ‘👤 Normal vs IA’)”>Normal vs IA</button>
+                    <button class=”main-btn” style=”background:var(--gold); color:black; padding:10px;” onclick=”setLobbyMode(‘pve’, ‘golden’, ‘🏆 Gol de Oro vs IA’)”>Gol de Oro vs IA</button>
                 </div>
-                <div style="flex:1; display:flex; flex-direction:column; gap:10px; min-width:200px;">
-                    <h3 style="color:var(--diamond); border-bottom:1px solid var(--border-color); padding-bottom:5px; margin:0;">MULTIJUGADOR</h3>
-                    <button class="main-btn" style="background:var(--danger); padding:10px;" onclick="setLobbyMode('pvp', 'normal', '🎮 Local 1 vs 1')">Local 1 vs 1</button>
-                    <button class="main-btn" style="background:#1e40af; padding:10px;" onclick="setLobbyMode('online', 'normal', '🌍 Online 1 vs 1')">Online 1 vs 1</button>
-                    <button class="main-btn" style="background:#6d28d9; padding:10px;" onclick="setLobbyMode('online2v2', 'normal', '👥 Online 2 vs 2')">Online 2 vs 2</button>
+                <div style=”flex:1; display:flex; flex-direction:column; gap:10px; min-width:200px;”>
+                    <h3 style=”color:var(--diamond); border-bottom:1px solid var(--border-color); padding-bottom:5px; margin:0;”>MULTIJUGADOR</h3>
+                    <button class=”main-btn” style=”background:var(--danger); padding:10px;” onclick=”setLobbyMode(‘pvp’, ‘normal’, ‘🎮 Local 1 vs 1’)”>Local 1 vs 1</button>
+                    <button class=”main-btn” style=”background:#1e40af; padding:10px;” onclick=”setLobbyMode(‘online’, ‘normal’, ‘🌍 Online 1 vs 1’)”>Online 1 vs 1</button>
+                    <button class=”main-btn” style=”background:#6d28d9; padding:10px;” onclick=”setLobbyMode(‘online2v2’, ‘normal’, ‘👥 Online 2 vs 2’)”>Online 2 vs 2</button>
                 </div>
             </div>
             
-            <h3 style="color:var(--danger); border-bottom:1px solid var(--border-color); padding-bottom:5px; margin:15px 0 0 0;">MODO CAOS 🌪️</h3>
-            <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:10px; width:100%;">
-                <button class="main-btn" style="background:#a855f7; flex:1; padding:10px;" onclick="setLobbyMode('pve', 'caos', '🌪️ Caos vs IA')">Caos vs IA</button>
-                <button class="main-btn" style="background:#ea580c; flex:1; padding:10px;" onclick="setLobbyMode('pvp', 'caos', '🌪️ Caos Local 1v1')">Caos Local</button>
-                <button class="main-btn" style="background:#dc2626; flex:1; padding:10px;" onclick="setLobbyMode('online', 'caos', '🌪️ Caos Online 1v1')">Caos Online</button>
+            <h3 style=”color:var(--danger); border-bottom:1px solid var(--border-color); padding-bottom:5px; margin:15px 0 0 0;”>MODO CAOS 🌪️</h3>
+            <div style=”display:flex; gap:10px; flex-wrap:wrap; margin-top:10px; width:100%;”>
+                <button class=”main-btn” style=”background:#a855f7; flex:1; padding:10px;” onclick=”setLobbyMode(‘pve’, ‘caos’, ‘🌪️ Caos vs IA’)”>Caos vs IA</button>
+                <button class=”main-btn” style=”background:#ea580c; flex:1; padding:10px;” onclick=”setLobbyMode(‘pvp’, ‘caos’, ‘🌪️ Caos Local 1v1’)”>Caos Local</button>
+                <button class=”main-btn” style=”background:#dc2626; flex:1; padding:10px;” onclick=”setLobbyMode(‘online’, ‘caos’, ‘🌪️ Caos Online 1v1’)”>Caos Online</button>
             </div>
 
-            <button class="main-btn btn-close" style="width:50%; margin:15px auto 0 auto;" onclick="closeScreen('mode-select-screen')" data-i18n="btn_close">Cerrar</button>
+            <button class=”main-btn btn-close” style=”width:50%; margin:15px auto 0 auto;” onclick=”closeScreen(‘mode-select-screen’)” data-i18n=”btn_close”>Cerrar</button>
         </div>
     </div>
 
-    <div id="equipo-screen" class="overlay-screen" style="display: none; opacity: 0;">
-        <div class="modal-panel" style="max-width: 550px;">
-            <h2 data-i18n="team_title">Misiones</h2>
-            <div style="width: 100%; max-height:60vh; overflow-y:auto; padding-right:10px;">
-                <h3 style="margin: 0 0 5px 0; font-size: 1.1rem; color:var(--primary);" data-i18n="mission_daily">Diarias</h3>
-                <div id="daily-missions-list" style="width: 100%; margin-bottom: 20px;"></div>
-                <h3 style="margin: 0 0 5px 0; font-size: 1.1rem; color:var(--gold);" data-i18n="mission_weekly">Semanales</h3>
-                <div id="weekly-missions-list" style="width: 100%;"></div>
+    <div id=”equipo-screen” class=”overlay-screen” style=”display: none; opacity: 0;”>
+        <div class=”modal-panel” style=”max-width: 550px;”>
+            <h2 data-i18n=”team_title”>Misiones</h2>
+            <div style=”width: 100%; max-height:60vh; overflow-y:auto; padding-right:10px;”>
+                <h3 style=”margin: 0 0 5px 0; font-size: 1.1rem; color:var(--primary);” data-i18n=”mission_daily”>Diarias</h3>
+                <div id=”daily-missions-list” style=”width: 100%; margin-bottom: 20px;”></div>
+                <h3 style=”margin: 0 0 5px 0; font-size: 1.1rem; color:var(--gold);” data-i18n=”mission_weekly”>Semanales</h3>
+                <div id=”weekly-missions-list” style=”width: 100%;”></div>
             </div>
-            <button class="main-btn btn-close" onclick="closeScreen('equipo-screen')" data-i18n="btn_close">Cerrar</button>
+            <button class=”main-btn btn-close” onclick=”closeScreen(‘equipo-screen’)” data-i18n=”btn_close”>Cerrar</button>
         </div>
     </div>
 
-    <div id="pause-screen" class="overlay-screen" style="display: none; opacity: 0;">
-        <div class="modal-panel">
-            <h2 data-i18n="pause_title">Juego Pausado</h2>
-            <button class="main-btn btn-play-ia" onclick="togglePause()" data-i18n="btn_resume">▶ Continuar</button>
-            <button class="main-btn btn-play-local" onclick="abandonMatch()" data-i18n="btn_abandon">🚪 Abandonar</button>
+    <div id=”pause-screen” class=”overlay-screen” style=”display: none; opacity: 0;”>
+        <div class=”modal-panel”>
+            <h2 data-i18n=”pause_title”>Juego Pausado</h2>
+            <button class=”main-btn btn-play-ia” onclick=”togglePause()” data-i18n=”btn_resume”>▶ Continuar</button>
+            <button class=”main-btn btn-play-local” onclick=”abandonMatch()” data-i18n=”btn_abandon”>🚪 Abandonar</button>
         </div>
     </div>
 
-    <div id="match-overlay" class="overlay-screen" style="display: none; opacity: 0;">
-        <div class="modal-panel" style="max-width: 550px;">
-            <h2 id="match-overlay-title">Fin 1er Tiempo</h2>
-            <div id="match-stats" style="width: 100%;"></div>
-            <button id="match-overlay-btn" class="main-btn btn-play-ia" style="margin-top:20px;" onclick="continueMatch()">Siguiente</button>
+    <div id=”match-overlay” class=”overlay-screen” style=”display: none; opacity: 0;”>
+        <div class=”modal-panel” style=”max-width: 550px;”>
+            <h2 id=”match-overlay-title”>Fin 1er Tiempo</h2>
+            <div id=”match-stats” style=”width: 100%;”></div>
+            <button id=”match-overlay-btn” class=”main-btn btn-play-ia” style=”margin-top:20px;” onclick=”continueMatch()”>Siguiente</button>
         </div>
     </div>
 
-    <div id="friends-screen" class="overlay-screen" style="display: none; opacity: 0;">
-        <div class="modal-panel" style="max-width: 450px; padding:0; overflow:hidden; background: var(--bg-app);">
-            <div style="padding: 15px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color);">
-                <h2 style="margin:0; font-size:1.3rem; display:flex; align-items:center; gap:10px;"><span style="color:var(--gold);">🤝</span> <span data-i18n="social_title">Amigos</span></h2>
-                <div style="background:var(--input-bg); padding:5px 10px; border-radius:8px; font-size:0.8rem; display:flex; align-items:center; gap:10px;">
-                    <span style="color:var(--text-muted);">Tu código:</span> <span style="color:var(--gold); font-weight:bold;" id="modal-friend-code-top">------</span>
-                    <button onclick="copyMyCode()" style="background:rgba(255,255,255,0.1); border:none; color:white; padding:5px 10px; border-radius:5px; cursor:pointer;">Copiar</button>
+    <div id=”friends-screen” class=”overlay-screen” style=”display: none; opacity: 0;”>
+        <div class=”modal-panel” style=”max-width: 450px; padding:0; overflow:hidden; background: var(--bg-app);”>
+            <div style=”padding: 15px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color);”>
+                <h2 style=”margin:0; font-size:1.3rem; display:flex; align-items:center; gap:10px;”><span style=”color:var(--gold);”>🤝</span> <span data-i18n=”social_title”>Amigos</span></h2>
+                <div style=”background:var(--input-bg); padding:5px 10px; border-radius:8px; font-size:0.8rem; display:flex; align-items:center; gap:10px;”>
+                    <span style=”color:var(--text-muted);”>Tu código:</span> <span style=”color:var(--gold); font-weight:bold;” id=”modal-friend-code-top”>------</span>
+                    <button onclick=”copyMyCode()” style=”background:rgba(255,255,255,0.1); border:none; color:white; padding:5px 10px; border-radius:5px; cursor:pointer;”>Copiar</button>
                 </div>
             </div>
-            <div class="tabs-header" style="margin:0; padding: 10px; background: var(--panel-bg); border-bottom:none;">
-                <button class="tab-btn active" id="tab-fr-list" onclick="switchFriendsTab('list')" style="border-radius:8px;">Amigos (<span id="fr-count">0</span>)</button>
-                <button class="tab-btn" id="tab-fr-req" onclick="switchFriendsTab('req')" style="border-radius:8px;">Solicitudes (<span id="req-count">0</span>)</button>
-                <button class="tab-btn" id="tab-fr-add" onclick="switchFriendsTab('add')" style="border-radius:8px;">➕ Añadir</button>
+            <div class=”tabs-header” style=”margin:0; padding: 10px; background: var(--panel-bg); border-bottom:none;”>
+                <button class=”tab-btn active” id=”tab-fr-list” onclick=”switchFriendsTab(‘list’)” style=”border-radius:8px;”>Amigos (<span id=”fr-count”>0</span>)</button>
+                <button class=”tab-btn” id=”tab-fr-req” onclick=”switchFriendsTab(‘req’)” style=”border-radius:8px;”>Solicitudes (<span id=”req-count”>0</span>)</button>
+                <button class=”tab-btn” id=”tab-fr-add” onclick=”switchFriendsTab(‘add’)” style=”border-radius:8px;”>➕ Añadir</button>
             </div>
-            <div id="fr-content-list" style="width: 100%; max-height: 50vh; overflow-y: auto; padding: 15px; box-sizing: border-box;"><div id="friends-list"></div></div>
-            <div id="fr-content-req" style="display:none; width: 100%; max-height: 50vh; overflow-y: auto; padding: 15px; box-sizing: border-box;"><div id="pending-list"></div></div>
-            <div id="fr-content-add" style="display:none; width: 100%; max-height: 50vh; overflow-y: auto; padding: 15px; box-sizing: border-box;">
-                <div style="background: var(--panel-bg); border-radius:12px; padding:15px; margin-bottom:15px;">
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-                        <h3 style="margin:0; font-size:1rem; display:flex; align-items:center; gap:5px;">🔢 Buscar código</h3>
-                        <label for="qr-scan-input" style="background:#1e3a8a; color:white; padding:8px 12px; border-radius:8px; cursor:pointer; font-size:0.85rem; font-weight:bold; display:flex; align-items:center; gap:5px;">📷 Escanear</label>
-                        <input type="file" id="qr-scan-input" accept="image/*" capture="environment" style="display:none;" onchange="handleQRScan(event)">
+            <div id=”fr-content-list” style=”width: 100%; max-height: 50vh; overflow-y: auto; padding: 15px; box-sizing: border-box;”><div id=”friends-list”></div></div>
+            <div id=”fr-content-req” style=”display:none; width: 100%; max-height: 50vh; overflow-y: auto; padding: 15px; box-sizing: border-box;”><div id=”pending-list”></div></div>
+            <div id=”fr-content-add” style=”display:none; width: 100%; max-height: 50vh; overflow-y: auto; padding: 15px; box-sizing: border-box;”>
+                <div style=”background: var(--panel-bg); border-radius:12px; padding:15px; margin-bottom:15px;”>
+                    <div style=”display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;”>
+                        <h3 style=”margin:0; font-size:1rem; display:flex; align-items:center; gap:5px;”>🔢 Buscar código</h3>
+                        <label for=”qr-scan-input” style=”background:#1e3a8a; color:white; padding:8px 12px; border-radius:8px; cursor:pointer; font-size:0.85rem; font-weight:bold; display:flex; align-items:center; gap:5px;”>📷 Escanear</label>
+                        <input type=”file” id=”qr-scan-input” accept=”image/*” capture=”environment” style=”display:none;” onchange=”handleQRScan(event)”>
                     </div>
-                    <div style="display:flex; gap:10px;">
-                        <input type="text" id="add-friend-input" placeholder="000000" maxlength="6" style="flex:1; padding:12px; border-radius:8px; border:none; background:var(--input-bg); color:white; text-align:center; font-family:monospace; font-size:1.2rem; letter-spacing:5px;">
-                        <button onclick="sendFriendRequest()" style="background:var(--primary); color:white; border:none; border-radius:8px; padding:0 20px; font-weight:bold; cursor:pointer;">Enviar</button>
-                    </div>
-                </div>
-                <div style="background: var(--panel-bg); border-radius:12px; padding:15px; margin-bottom:15px;">
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-                        <h3 style="margin:0; font-size:1rem; display:flex; align-items:center; gap:5px;">📲 Mi código QR</h3>
-                        <button onclick="toggleQR()" id="btn-toggle-qr" style="background:rgba(255,255,255,0.1); border:none; color:white; padding:8px 12px; border-radius:8px; cursor:pointer; font-size:0.85rem; font-weight:bold;">👁️ Mostrar</button>
-                    </div>
-                    <div id="qr-display-box" style="display:none; justify-content:center; align-items:center; margin-top:15px; background:white; padding:15px; border-radius:10px;">
-                        <div style="width:120px; height:120px; background:url('data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 fill=%22white%22/><rect x=%2210%22 y=%2210%22 width=%2230%22 height=%2230%22 fill=%22none%22 stroke=%22black%22 stroke-width=%2210%22/><rect x=%2260%22 y=%2210%22 width=%2230%22 height=%2230%22 fill=%22none%22 stroke=%22black%22 stroke-width=%2210%22/><rect x=%2210%22 y=%2260%22 width=%2230%22 height=%2230%22 fill=%22none%22 stroke=%22black%22 stroke-width=%2210%22/><rect x=%2260%22 y=%2260%22 width=%2210%22 height=%2210%22 fill=%22black%22/><rect x=%2280%22 y=%2280%22 width=%2210%22 height=%2210%22 fill=%22black%22/><rect x=%2245%22 y=%2245%22 width=%2210%22 height=%2210%22 fill=%22black%22/></svg>') center/cover; border: 5px solid white;"></div>
+                    <div style=”display:flex; gap:10px;”>
+                        <input type=”text” id=”add-friend-input” placeholder=”000000” maxlength=”6” style=”flex:1; padding:12px; border-radius:8px; border:none; background:var(--input-bg); color:white; text-align:center; font-family:monospace; font-size:1.2rem; letter-spacing:5px;”>
+                        <button onclick=”sendFriendRequest()” style=”background:var(--primary); color:white; border:none; border-radius:8px; padding:0 20px; font-weight:bold; cursor:pointer;”>Enviar</button>
                     </div>
                 </div>
-                <div style="background: var(--panel-bg); border-radius:12px; padding:15px;">
-                    <h3 style="margin:0 0 10px 0; font-size:1rem; display:flex; align-items:center; gap:5px;">🔗 Enlace de invitación</h3>
-                    <div style="display:flex; gap:10px; margin-bottom:10px;">
-                        <input type="text" id="invite-link-input" readonly value="https://futcard.app/invite?c=" style="flex:1; padding:12px; border-radius:8px; border:none; background:var(--input-bg); color:var(--primary); font-size:0.8rem;">
-                        <button onclick="copyInviteLink()" style="background:var(--primary); color:white; border:none; border-radius:8px; padding:0 15px; font-weight:bold; cursor:pointer;">Copiar</button>
+                <div style=”background: var(--panel-bg); border-radius:12px; padding:15px; margin-bottom:15px;”>
+                    <div style=”display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;”>
+                        <h3 style=”margin:0; font-size:1rem; display:flex; align-items:center; gap:5px;”>📲 Mi código QR</h3>
+                        <button onclick=”toggleQR()” id=”btn-toggle-qr” style=”background:rgba(255,255,255,0.1); border:none; color:white; padding:8px 12px; border-radius:8px; cursor:pointer; font-size:0.85rem; font-weight:bold;”>👁️ Mostrar</button>
                     </div>
-                    <button onclick="shareInviteLink()" style="width:100%; background:#16a34a; color:white; border:none; padding:12px; border-radius:8px; font-weight:bold; font-size:1rem; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:10px;">📤 Compartir por App</button>
+                    <div id=”qr-display-box” style=”display:none; justify-content:center; align-items:center; margin-top:15px; background:white; padding:15px; border-radius:10px;”>
+                        <div style=”width:120px; height:120px; background:url(‘data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 fill=%22white%22/><rect x=%2210%22 y=%2210%22 width=%2230%22 height=%2230%22 fill=%22none%22 stroke=%22black%22 stroke-width=%2210%22/><rect x=%2260%22 y=%2210%22 width=%2230%22 height=%2230%22 fill=%22none%22 stroke=%22black%22 stroke-width=%2210%22/><rect x=%2210%22 y=%2260%22 width=%2230%22 height=%2230%22 fill=%22none%22 stroke=%22black%22 stroke-width=%2210%22/><rect x=%2260%22 y=%2260%22 width=%2210%22 height=%2210%22 fill=%22black%22/><rect x=%2280%22 y=%2280%22 width=%2210%22 height=%2210%22 fill=%22black%22/><rect x=%2245%22 y=%2245%22 width=%2210%22 height=%2210%22 fill=%22black%22/></svg>’) center/cover; border: 5px solid white;”></div>
+                    </div>
+                </div>
+                <div style=”background: var(--panel-bg); border-radius:12px; padding:15px;”>
+                    <h3 style=”margin:0 0 10px 0; font-size:1rem; display:flex; align-items:center; gap:5px;”>🔗 Enlace de invitación</h3>
+                    <div style=”display:flex; gap:10px; margin-bottom:10px;”>
+                        <input type=”text” id=”invite-link-input” readonly value=https://futcard.app/invite?c= style=”flex:1; padding:12px; border-radius:8px; border:none; background:var(--input-bg); color:var(--primary); font-size:0.8rem;”>
+                        <button onclick=”copyInviteLink()” style=”background:var(--primary); color:white; border:none; border-radius:8px; padding:0 15px; font-weight:bold; cursor:pointer;”>Copiar</button>
+                    </div>
+                    <button onclick=”shareInviteLink()” style=”width:100%; background:#16ª34a; color:white; border:none; padding:12px; border-radius:8px; font-weight:bold; font-size:1rem; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:10px;”>📤 Compartir por App</button>
                 </div>
             </div>
-            <div style="padding:15px; border-top:1px solid var(--border-color); background:var(--panel-bg); width:100%; box-sizing:border-box;">
-                <button class="main-btn btn-close" style="margin:0;" onclick="closeScreen('friends-screen')" data-i18n="btn_back">Volver</button>
+            <div style=”padding:15px; border-top:1px solid var(--border-color); background:var(--panel-bg); width:100%; box-sizing:border-box;”>
+                <button class=”main-btn btn-close” style=”margin:0;” onclick=”closeScreen(‘friends-screen’)” data-i18n=”btn_back”>Volver</button>
             </div>
         </div>
     </div>
 
-    <div id="casillero-screen" class="overlay-screen" style="display: none; opacity: 0; z-index: 210;">
-        <div class="modal-panel" style="max-width: 550px; max-height: 90vh; padding: 20px; display: flex; flex-direction: column;">
+    <div id=”casillero-screen” class=”overlay-screen” style=”display: none; opacity: 0; z-index: 210;”>
+        <div class=”modal-panel” style=”max-width: 550px; max-height: 90vh; padding: 20px; display: flex; flex-direction: column;”>
             <h2>🎒 Mi Casillero</h2>
-            <div class="tabs-header" style="flex-shrink: 0; margin-top:10px;">
-                <button class="tab-btn active" id="tab-cas-ball" onclick="renderCasillero('ball')">⚽ Balones</button>
-                <button class="tab-btn" id="tab-cas-skin" onclick="renderCasillero('skin')">🧍 Personajes</button>
-                <button class="tab-btn" id="tab-cas-stadium" onclick="renderCasillero('stadium')">🏟️ Estadios</button>
-                <button class="tab-btn" id="tab-cas-effect" onclick="renderCasillero('effect')">✨ Efectos</button>
+            <div class=”tabs-header” style=”flex-shrink: 0; margin-top:10px;”>
+                <button class=”tab-btn active” id=”tab-cas-ball” onclick=”renderCasillero(‘ball’)”>⚽ Balones</button>
+                <button class=”tab-btn” id=”tab-cas-skin” onclick=”renderCasillero(‘skin’)”>🧍 Personajes</button>
+                <button class=”tab-btn” id=”tab-cas-stadium” onclick=”renderCasillero(‘stadium’)”>🏟️ Estadios</button>
+                <button class=”tab-btn” id=”tab-cas-effect” onclick=”renderCasillero(‘effect’)”>✨ Efectos</button>
             </div>
-            <div id="casillero-items" class="shop-grid" style="flex: 1; overflow-y: auto; width: 100%; padding-right: 5px;"></div>
-            <button class="main-btn btn-close" style="flex-shrink: 0; margin-top:15px;" onclick="closeScreen('casillero-screen')">Cerrar</button>
+            <div id=”casillero-items” class=”shop-grid” style=”flex: 1; overflow-y: auto; width: 100%; padding-right: 5px;”></div>
+            <button class=”main-btn btn-close” style=”flex-shrink: 0; margin-top:15px;” onclick=”closeScreen(‘casillero-screen’)”>Cerrar</button>
         </div>
     </div>
 
-    <div id="shop-screen" class="overlay-screen" style="display: none; opacity: 0;">
-        <div class="modal-panel" style="max-width: 550px; max-height: 90vh; padding: 20px; display: flex; flex-direction: column;">
-            <h2 data-i18n="shop_title">Tienda Diaria</h2>
-            <div class="shop-timer" id="shop-rotation-timer" style="flex-shrink:0;">Cambio en: 00:00:00</div>
+    <div id=”shop-screen” class=”overlay-screen” style=”display: none; opacity: 0;”>
+        <div class=”modal-panel” style=”max-width: 550px; max-height: 90vh; padding: 20px; display: flex; flex-direction: column;”>
+            <h2 data-i18n=”shop_title”>Tienda Diaria</h2>
+            <div class=”shop-timer” id=”shop-rotation-timer” style=”flex-shrink:0;”>Cambio en: 00:00:00</div>
             
-            <div id="shop-all-items" style="flex: 1; overflow-y: auto; width: 100%; padding-right: 5px;"></div>
+            <div id=”shop-all-items” style=”flex: 1; overflow-y: auto; width: 100%; padding-right: 5px;”></div>
             
-            <div class="tabs-header" style="flex-shrink: 0; margin-top:10px; border-bottom:none; border-top:1px solid var(--border-color); padding-top:10px;">
-                <button class="tab-btn" onclick="scrollToShopSec('packs')">💎</button>
-                <button class="tab-btn" onclick="scrollToShopSec('ball')">⚽</button>
-                <button class="tab-btn" onclick="scrollToShopSec('skin')">🧍</button>
-                <button class="tab-btn" onclick="scrollToShopSec('stadium')">🏟️</button>
-                <button class="tab-btn" onclick="scrollToShopSec('effect')">✨</button>
+            <div class=”tabs-header” style=”flex-shrink: 0; margin-top:10px; border-bottom:none; border-top:1px solid var(--border-color); padding-top:10px;”>
+                <button class=”tab-btn” onclick=”scrollToShopSec(‘packs’)”>💎</button>
+                <button class=”tab-btn” onclick=”scrollToShopSec(‘ball’)”>⚽</button>
+                <button class=”tab-btn” onclick=”scrollToShopSec(‘skin’)”>🧍</button>
+                <button class=”tab-btn” onclick=”scrollToShopSec(‘stadium’)”>🏟️</button>
+                <button class=”tab-btn” onclick=”scrollToShopSec(‘effect’)”>✨</button>
             </div>
             
-            <button class="main-btn btn-close" style="flex-shrink: 0; margin-top:5px;" onclick="closeScreen('shop-screen')" data-i18n="btn_close">Cerrar</button>
+            <button class=”main-btn btn-close” style=”flex-shrink: 0; margin-top:5px;” onclick=”closeScreen(‘shop-screen’)” data-i18n=”btn_close”>Cerrar</button>
         </div>
     </div>
     
-    <div id="pass-screen" class="overlay-screen" style="display: none; opacity: 0;">
-        <div id="pass-modal" class="modal-panel">
-            <div class="pass-header-img2">
-                <h2 style="margin:0; color:var(--gold);" data-i18n="pass_title">Pase Estelar</h2>
-                <div style="display:flex; gap:10px; align-items:center;">
-                    <span style="font-weight:bold; color:white;">Nivel: <span id="pass-global-prog">1/100</span></span>
-                    <button id="btn-buy-pass" onclick="buyPremiumPass()" style="background:var(--primary); color:white; border:none; padding:8px 15px; border-radius:8px; font-weight:bold; cursor:pointer;">Mejorar (50💎)</button>
-                    <button class="btn-close" style="margin:0; padding:8px 15px; background:var(--danger); color:white; border:none; border-radius:8px;" onclick="closeScreen('pass-screen')">X</button>
+    <div id=”pass-screen” class=”overlay-screen” style=”display: none; opacity: 0;”>
+        <div id=”pass-modal” class=”modal-panel”>
+            <div class=”pass-header-img2”>
+                <h2 style=”margin:0; color:var(--gold);” data-i18n=”pass_title”>Pase Estelar</h2>
+                <div style=”display:flex; gap:10px; align-items:center;”>
+                    <span style=”font-weight:bold; color:white;”>Nivel: <span id=”pass-global-prog”>1/100</span></span>
+                    <button id=”btn-buy-pass” onclick=”buyPremiumPass()” style=”background:var(--primary); color:white; border:none; padding:8px 15px; border-radius:8px; font-weight:bold; cursor:pointer;”>Mejorar (50💎)</button>
+                    <button class=”btn-close” style=”margin:0; padding:8px 15px; background:var(--danger); color:white; border:none; border-radius:8px;” onclick=”closeScreen(‘pass-screen’)”>X</button>
                 </div>
             </div>
-            <div class="pass-body-img2">
-                <div class="pass-track-wrapper">
-                    <div class="pass-track-line" id="pass-track-content">
+            <div class=”pass-body-img2”>
+                <div class=”pass-track-wrapper”>
+                    <div class=”pass-track-line” id=”pass-track-content”>
                         </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <div id="pack-animation-screen" class="overlay-screen" style="display: none; opacity: 0; z-index: 400; background: rgba(0,0,0,0.95);">
-        <h2 style="color:var(--gold); font-size:2rem; margin-bottom:30px;" id="pack-title">TOCA PARA ABRIR</h2>
-        <div id="pack-card" style="width: 150px; height: 200px; background: linear-gradient(45deg, #facc15, #f59e0b); border-radius: 15px; cursor: pointer; box-shadow: 0 0 30px #facc15; display: flex; justify-content:center; align-items:center; font-size:4rem;" onclick="revealPack()">❓</div>
-        <div id="pack-reveal" style="width: 160px; height: 220px; background: white; border-radius: 15px; display: none; flex-direction: column; align-items: center; justify-content: center; animation: popIn 0.5s ease-out forwards; box-shadow: 0 0 50px rgba(255,255,255,0.8);">
-            <div id="pack-reveal-icon" style="font-size: 3rem; margin-bottom:10px;">⚽</div>
-            <h3 id="pack-reveal-text" style="color:black; margin:0; text-align:center; font-size:1.2rem;"></h3>
+    <div id=”pack-animation-screen” class=”overlay-screen” style=”display: none; opacity: 0; z-index: 400; background: rgba(0,0,0,0.95);”>
+        <h2 style=”color:var(--gold); font-size:2rem; margin-bottom:30px;” id=”pack-title”>TOCA PARA ABRIR</h2>
+        <div id=”pack-card” style=”width: 150px; height: 200px; background: linear-gradient(45deg, #facc15, #f59e0b); border-radius: 15px; cursor: pointer; box-shadow: 0 0 30px #facc15; display: flex; justify-content:center; align-items:center; font-size:4rem;” onclick=”revealPack()”>❓</div>
+        <div id=”pack-reveal” style=”width: 160px; height: 220px; background: white; border-radius: 15px; display: none; flex-direction: column; align-items: center; justify-content: center; animation: popIn 0.5s ease-out forwards; box-shadow: 0 0 50px rgba(255,255,255,0.8);”>
+            <div id=”pack-reveal-icon” style=”font-size: 3rem; margin-bottom:10px;”>⚽</div>
+            <h3 id=”pack-reveal-text” style=”color:black; margin:0; text-align:center; font-size:1.2rem;”></h3>
         </div>
-        <button id="pack-close-btn" class="main-btn" style="display:none; max-width:200px; margin-top:30px; background:var(--primary);" onclick="closePack()">Continuar</button>
+        <button id=”pack-close-btn” class=”main-btn” style=”display:none; max-width:200px; margin-top:30px; background:var(--primary);” onclick=”closePack()”>Continuar</button>
     </div>
 
-    <div id="settings-screen" class="overlay-screen" style="display: none; opacity: 0;">
-        <div class="modal-panel">
-            <h2 data-i18n="settings_title">Ajustes</h2>
-            <input type="text" id="player-name-input" placeholder="Tu Nombre" maxlength="12" style="background:var(--input-bg); color:var(--text-color); border:1px solid var(--border-color); border-radius:10px; padding:12px; width:100%; box-sizing:border-box;">
+    <div id=”settings-screen” class=”overlay-screen” style=”display: none; opacity: 0;”>
+        <div class=”modal-panel”>
+            <h2 data-i18n=”settings_title”>Ajustes</h2>
+            <input type=”text” id=”player-name-input” placeholder=”Tu Nombre” maxlength=”12” style=”background:var(--input-bg); color:var(--text-color); border:1px solid var(--border-color); border-radius:10px; padding:12px; width:100%; box-sizing:border-box;”>
             
-            <button class="main-btn" style="background:#8b5cf6; margin-top:10px;" onclick="enterHUDEdit()">🎮 Personalizar Controles</button>
+            <button class=”main-btn” style=”background:#8b5cf6; margin-top:10px;” onclick=”enterHUDEdit()”>🎮 Personalizar Controles</button>
 
-            <div style="display:flex; gap:10px; width:100%; margin-top:10px;">
-                <select id="setting-theme" style="flex:1; padding:12px; background:var(--input-bg); color:var(--text-color); border:1px solid var(--border-color); border-radius:10px;"><option value="dark">🌙 Oscuro</option><option value="light">☀️ Claro</option></select>
-                <select id="setting-lang" style="flex:1; padding:12px; background:var(--input-bg); color:var(--text-color); border:1px solid var(--border-color); border-radius:10px;"><option value="es">🇪🇸 ES</option><option value="en">🇬🇧 EN</option><option value="pt">🇧🇷 PT</option></select>
+            <div style=”display:flex; gap:10px; width:100%; margin-top:10px;”>
+                <select id=”setting-theme” style=”flex:1; padding:12px; background:var(--input-bg); color:var(--text-color); border:1px solid var(--border-color); border-radius:10px;”><option value=”dark”>🌙 Oscuro</option><option value=”light”>☀️ Claro</option></select>
+                <select id=”setting-lang” style=”flex:1; padding:12px; background:var(--input-bg); color:var(--text-color); border:1px solid var(--border-color); border-radius:10px;”><option value=”es”>🇪🇸 ES</option><option value=”en”>🇬🇧 EN</option><option value=”pt”>🇧🇷 PT</option></select>
             </div>
             
-            <div style="display:flex; gap:10px; width:100%; margin-top:10px; background:var(--input-bg); padding:12px; border-radius:10px; border:1px solid var(--border-color); box-sizing:border-box; align-items:center;">
-                <span style="flex:1; font-size:0.9rem; font-weight:bold;">Controles Optimizados (✔️/❌)</span>
-                <select id="setting-opt-controls" style="flex:1; padding:8px; background:var(--panel-bg); color:var(--text-color); border:1px solid var(--border-color); border-radius:8px;">
-                    <option value="true">Activado</option>
-                    <option value="false">Desactivado</option>
+            <div style=”display:flex; gap:10px; width:100%; margin-top:10px; background:var(--input-bg); padding:12px; border-radius:10px; border:1px solid var(--border-color); box-sizing:border-box; align-items:center;”>
+                <span style=”flex:1; font-size:0.9rem; font-weight:bold;”>Controles Optimizados (✔️/❌)</span>
+                <select id=”setting-opt-controls” style=”flex:1; padding:8px; background:var(--panel-bg); color:var(--text-color); border:1px solid var(--border-color); border-radius:8px;”>
+                    <option value=”true”>Activado</option>
+                    <option value=”false”>Desactivado</option>
                 </select>
             </div>
 
-            <button class="btn-google" id="btn-open-login" onclick="openScreen('login-screen')" style="background:white; color:#333; padding:12px; border-radius:10px; border:none; width:100%; font-weight:bold; cursor:pointer; display:flex; justify-content:center; align-items:center; gap:10px; margin-top:10px;">
-                <svg viewBox="0 0 24 24" style="width:20px;height:20px;"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
-                <span data-i18n="btn_login_google">Vincular Google</span>
+            <button class=”btn-google” id=”btn-open-login” onclick=”openScreen(‘login-screen’)” style=”background:white; color:#333; padding:12px; border-radius:10px; border:none; width:100%; font-weight:bold; cursor:pointer; display:flex; justify-content:center; align-items:center; gap:10px; margin-top:10px;”>
+                <svg viewBox=”0 0 24 24” style=”width:20px;height:20px;”><path d=”M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z” fill=”#4285F4”/><path d=”M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z” fill=”#34ª853”/><path d=”M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z” fill=”#FBBC05”/><path d=”M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z” fill=”#EA4335”/></svg>
+                <span data-i18n=”btn_login_google”>Vincular Google</span>
             </button>
-            <button class="main-btn" id="btn-logout" onclick="processLogout()" style="background:var(--danger); display:none; margin-top:10px;" data-i18n="btn_logout">Cerrar sesión</button>
-            <button class="main-btn btn-close" onclick="saveSettings()" data-i18n="btn_save_close">Guardar</button>
+            <button class=”main-btn” id=”btn-logout” onclick=”processLogout()” style=”background:var(--danger); display:none; margin-top:10px;” data-i18n=”btn_logout”>Cerrar sesión</button>
+            <button class=”main-btn btn-close” onclick=”saveSettings()” data-i18n=”btn_save_close”>Guardar</button>
         </div>
     </div>
     
-    <div id="loading-overlay" class="overlay-screen" style="display: none; opacity: 0; z-index: 300;">
-        <div style="width: 40px; height: 40px; border: 4px solid rgba(255,255,255,0.1); border-top: 4px solid var(--primary); border-radius: 50%; animation: spin 1s linear infinite;"></div>
+    <div id=”loading-overlay” class=”overlay-screen” style=”display: none; opacity: 0; z-index: 300;”>
+        <div style=”width: 40px; height: 40px; border: 4px solid rgba(255,255,255,0.1); border-top: 4px solid var(--primary); border-radius: 50%; animation: spin 1s linear infinite;”></div>
     </div>
 
-    <script>
-        // --- CONEXIÓN AL SERVIDOR MULTIJUGADOR ---
-        let socket;
-        try {
-            socket = io('https://futcard-play.onrender.com'); 
-            socket.on('connect', () => {
-                console.log("¡Conectado al servidor multijugador!");
-            });
-        } catch(e) {
-            console.log("Jugando offline.");
-        }
+    <script src=”logica.js”></script>
 
-        // --- INICIALIZAR FIREBASE ---
-        const firebaseConfig = {
-          apiKey: "AIzaSyBCGbzPLV40o-i81k-lLPId0dnFIGBciLU",
-          authDomain: "futcard-play.firebaseapp.com",
-          projectId: "futcard-play",
-          storageBucket: "futcard-play.firebasestorage.app",
-          messagingSenderId: "467062996610",
-          appId: "1:467062996610:web:705d1704ad8c61b4fb3e9b",
-          measurementId: "G-J80C29EPB7"
-        };
-
-        if (!firebase.apps.length) {
-            firebase.initializeApp(firebaseConfig);
-        }
-        window.db = firebase.firestore();
-
-        // --- PING DE ESTADO ONLINE EN FIREBASE ---
-        setInterval(() => {
-            if(window.db && currentUser && currentUser.code) {
-                window.db.collection("usuarios").doc(currentUser.code).set({
-                    lastOnline: Date.now()
-                }, {merge: true}).catch(e=>{});
-            }
-        }, 30000); // Actualiza cada 30 segundos
-
-        function formatLastOnline(timestamp) {
-            if(!timestamp) return "Desconocido";
-            let diff = Date.now() - timestamp;
-            if(diff < 60000) return "<span style='color:var(--success)'>🟢 En línea</span>";
-            let mins = Math.floor(diff / 60000);
-            if(mins < 60) return `Hace ${mins} min`;
-            let hours = Math.floor(mins / 60);
-            if(hours < 24) return `Hace ${hours} hs`;
-            let days = Math.floor(hours / 24);
-            return `Hace ${days} días`;
-        }
-
-        // --- SISTEMA SOCIAL EN LA NUBE Y NOTIFICACIONES DE JUEGO ---
-        let unsubSocial = null;
-        let unsubNotifs = null;
-
-        function listenToFirebaseSocial() {
-            if(!window.db) return; 
-            
-            if(unsubSocial) unsubSocial();
-            if(unsubNotifs) unsubNotifs();
-
-            // ESCUCHADOR DE AMIGOS
-            unsubSocial = window.db.collection("solicitudes").onSnapshot((snapshot) => {
-                let pending = [];
-                let friends = [];
-                
-                snapshot.forEach(docSnap => {
-                    let data = docSnap.data();
-                    if(data.destinatario === currentUser.code && data.estado === "pendiente") {
-                        pending.push({ docId: docSnap.id, code: data.remitente, name: data.nombreRemitente || "Jugador" });
-                    } else if(data.estado === "aceptado") {
-                        if(data.remitente === currentUser.code) {
-                            friends.push({ name: data.nombreDestinatario || "Amigo", code: data.destinatario, docId: docSnap.id });
-                        } else if(data.destinatario === currentUser.code) {
-                            friends.push({ name: data.nombreRemitente || "Amigo", code: data.remitente, docId: docSnap.id });
-                        }
-                    }
-                });
-                currentUser.requests = pending;
-                currentUser.friends = friends;
-                renderFriends();
-            });
-
-            // ESCUCHADOR DE NOTIFICACIONES (INVITACIONES A JUGAR)
-            unsubNotifs = window.db.collection("notificaciones").onSnapshot((snapshot) => {
-                let notifs = [];
-                snapshot.forEach(docSnap => {
-                    let data = docSnap.data();
-                    if(data.destinatario === currentUser.code) {
-                        notifs.push({ docId: docSnap.id, ...data });
-                    }
-                });
-                currentUser.notifs = notifs;
-                renderNotifs();
-            });
-        }
-
-        function renderNotifs() {
-            if(!currentUser.notifs) currentUser.notifs = [];
-            
-            let badge = document.getElementById('notif-badge');
-            if(badge) {
-                badge.innerText = currentUser.notifs.length;
-                badge.style.display = currentUser.notifs.length > 0 ? 'block' : 'none';
-            }
-            
-            let list = document.getElementById('notif-list');
-            if(!list) return;
-            list.innerHTML = '';
-            
-            if(currentUser.notifs.length === 0) {
-                list.innerHTML = "<p style='text-align:center; color:var(--text-muted); padding:20px;'>No tienes notificaciones</p>";
-                return;
-            }
-            
-            currentUser.notifs.forEach(n => {
-                if(n.tipo === 'invite') {
-                    let btnAcc = currentUser.optControls ? '✔️' : 'Aceptar';
-                    let btnRej = currentUser.optControls ? '❌' : 'Rechazar';
-                    list.innerHTML += `<div class="friend-item"><div class="friend-avatar" style="background:var(--primary); color:white;">🎮</div><div class="friend-info"><div class="friend-name" style="font-weight:bold">${n.remitenteNombre}</div><div class="friend-status-text" style="font-size:0.8rem">Te invitó a jugar</div></div><div style="display:flex; gap:5px;"><button class="btn-small" onclick="acceptInvite('${n.docId}', '${n.remitenteCode}', '${n.remitenteNombre}')" style="background:var(--success);">${btnAcc}</button><button class="btn-small" onclick="rejectInvite('${n.docId}')" style="background:var(--danger);">${btnRej}</button></div></div>`;
-                }
-            });
-        }
-
-        function acceptInvite(docId, rCode, rName) {
-            if(!window.db) return;
-            
-            window.db.collection("notificaciones").doc(docId).delete().catch(e=>console.log(e));
-            closeScreen('notif-screen');
-            
-            lobbyState.players = 2;
-            lobbyState.guestName = rName;
-            lobbyState.isReady = false;
-            lobbyState.guestReady = true; 
-            
-            setTxt('lobby-p2-name', rName);
-            setTxt('lobby-p2-av', rName.charAt(0).toUpperCase());
-            document.getElementById('lobby-p2-oval').classList.remove('empty');
-            document.getElementById('lobby-p2-av').classList.remove('empty');
-            document.getElementById('lobby-p2-av').classList.add('guest');
-            setTxt('lobby-p2-status', 'LISTO');
-            document.getElementById('lobby-p2-status').style.color = 'var(--success)';
-            
-            setLobbyMode('online', 'normal', '🌍 Online 1 vs 1');
-            openLobby();
-        }
-
-        function rejectInvite(docId) {
-            let idx = currentUser.notifs.findIndex(n => n.docId === docId);
-            if(idx > -1) currentUser.notifs.splice(idx, 1);
-            renderNotifs();
-
-            if(!window.db) return;
-            window.db.collection("notificaciones").doc(docId).delete().catch(e=>console.log(e));
-        }
-
-        // --- SISTEMA DE PERFIL DE AMIGO ---
-        let currentFriendView = null;
-        async function openFriendProfile(code, name, docId) {
-            currentFriendView = { code, name, docId };
-            setTxt('fp-name', name);
-            setTxt('fp-avatar', name.charAt(0).toUpperCase());
-            setTxt('fp-code', code);
-            document.getElementById('fp-status').innerHTML = "Cargando estado...";
-            openScreen('friend-profile-screen');
-            
-            if(window.db) {
-                try {
-                    let doc = await window.db.collection("usuarios").doc(code).get();
-                    if(doc.exists) {
-                        document.getElementById('fp-status').innerHTML = "Última vez: " + formatLastOnline(doc.data().lastOnline);
-                    } else {
-                        document.getElementById('fp-status').innerHTML = "Última vez: Desconocido";
-                    }
-                } catch(e) {
-                    document.getElementById('fp-status').innerHTML = "Última vez: Desconocido";
-                }
-            }
-        }
-        
-        function challengeOnlineFromProfile() {
-            if(currentFriendView) {
-                closeScreen('friend-profile-screen');
-                challengeOnline(currentFriendView.code, currentFriendView.name);
-            }
-        }
-        
-        async function deleteFriendFromProfile() {
-            if(!currentFriendView || !window.db) return;
-            if(confirm("¿Seguro que quieres eliminar a " + currentFriendView.name + " de tus amigos?")) {
-                await window.db.collection("solicitudes").doc(currentFriendView.docId).delete();
-                closeScreen('friend-profile-screen');
-                alert("Amigo eliminado.");
-            }
-        }
-
-        // --- FUNCIONES ORIGINALES ---
-        function setTxt(id, val) { let el = document.getElementById(id); if(el) el.innerText = val; }
-        function setVal(id, val) { let el = document.getElementById(id); if(el) el.value = val; }
-
-        function requestFullscreenAndLock() {
-            let doc = document.documentElement; let req = doc.requestFullscreen || doc.mozRequestFullScreen || doc.webkitRequestFullscreen || doc.msRequestFullscreen;
-            if(req) { req.call(doc).then(()=>{ if(screen.orientation && screen.orientation.lock) screen.orientation.lock('landscape').catch(e=>console.log(e)); }).catch(e=>console.log(e)); } 
-            else if(screen.orientation && screen.orientation.lock) { screen.orientation.lock('landscape').catch(e=>console.log(e)); }
-            let warn = document.getElementById('landscape-warning'); if(warn) warn.style.display = 'none';
-        }
-
-        const i18n = {
-            es: { rotate_title:"Gira tu dispositivo", rotate_desc:"Diseñado para modo horizontal.", btn_fullscreen:"Forzar Pantalla", welcome:"Bienvenido,", friend_code:"Código:", play_btn:"¡Jugar!", play_desc:"Gol de oro, clima y replays", level:"Niv.", nav_home:"Inicio", nav_team:"Misiones", nav_social:"Amigos", nav_play:"Jugar", nav_shop:"Tienda", nav_settings:"Ajustes", nav_pass:"Pase", team_title:"Misiones", mission_daily:"Diarias", mission_weekly:"Semanales", select_mode:"Modo", btn_ia:"🤖 Partido vs IA", btn_local:"🎮 Local 1 vs 1", btn_close:"Cerrar", pause_title:"Pausa", btn_resume:"▶ Continuar", btn_abandon:"🚪 Abandonar", social_title:"Amigos", btn_add:"Añadir", social_pending:"Pendientes", social_friends:"Amigos", btn_back:"Volver", shop_title:"Tienda Diaria", settings_title:"Ajustes", btn_login_google:"Vincular Google", btn_logout:"Cerrar sesión", btn_save_close:"Guardar", login_title:"Iniciar Sesión", login_desc:"Usa tu cuenta", btn_cancel:"Cancelar", btn_next:"Siguiente", match_pre:"Previa", pass_title:"Pase Estelar", badge_home: "LOCAL", badge_away: "VISIT." },
-            en: { rotate_title:"Rotate Device", rotate_desc:"Designed for landscape mode.", btn_fullscreen:"Force Fullscreen", welcome:"Welcome back,", friend_code:"Code:", play_btn:"Play!", play_desc:"Golden goal & Replays", level:"Lvl.", nav_home:"Home", nav_team:"Missions", nav_social:"Friends", nav_play:"Play", nav_shop:"Shop", nav_settings:"Settings", nav_pass:"Pass", team_title:"Missions", mission_daily:"Daily", mission_weekly:"Weekly", select_mode:"Mode", btn_ia:"🤖 Play vs AI", btn_local:"🎮 Local 1v1", btn_close:"Close", pause_title:"Paused", btn_resume:"▶ Resume", btn_abandon:"🚪 Forfeit", social_title:"Friends", btn_add:"Add", social_pending:"Pending", social_friends:"Friends", btn_back:"Back", shop_title:"Daily Shop", settings_title:"Settings", btn_login_google:"Link Google", btn_logout:"Log Out", btn_save_close:"Save", login_title:"Sign In", login_desc:"Use Google account", btn_cancel:"Cancel", btn_next:"Next", match_pre:"Pre-match", pass_title:"Star Pass", badge_home: "HOME", badge_away: "AWAY" },
-            pt: { rotate_title:"Gire seu dispositivo", rotate_desc:"FutCard Play foi projetado para modo paisagem.", btn_fullscreen:"Forçar Tela Cheia", welcome:"Bem-vindo,", friend_code:"Código:", play_btn:"Jogar!", play_desc:"Física+Clima+Replay", level:"Nív.", nav_home:"Início", nav_team:"Missões", nav_social:"Amigos", nav_play:"Jogar", nav_shop:"Loja", nav_settings:"Config.", nav_pass:"Passe", team_title:"Missões", mission_daily:"Diárias", mission_weekly:"Semanais", select_mode:"Modo", btn_ia:"🤖 Jogar vs IA", btn_local:"🎮 Local 1v1", btn_close:"Fechar", pause_title:"Pausado", btn_resume:"▶ Continuar", btn_abandon:"🚪 Abandonar", social_title:"Amigos", btn_add:"Add", social_pending:"Pendentes", social_friends:"Amigos", btn_back:"Voltar", shop_title:"Loja Diária", settings_title:"Configurações", btn_login_google:"Vincular Google", btn_logout:"Sair", btn_save_close:"Salvar", login_title:"Fazer Login", login_desc:"Use sua cuenta Google", btn_cancel:"Cancelar", btn_next:"Próximo", match_pre:"Pré-jogo", pass_title:"Passe Estelar", badge_home: "CASA", badge_away: "FORA" }
-        };
-
-        const FULL_CATALOG = {
-            packs: { 'bronce':{es:'Sobre Bronce',en:'Bronze Pack',pt:'Pacote Bronze',p:10, bg:'#cd7f32'}, 'plata':{es:'Sobre Plata',en:'Silver Pack',pt:'Pacote Prata',p:25, bg:'#c0c0c0'}, 'oro':{es:'Sobre Oro',en:'Gold Pack',pt:'Pacote Ouro',p:50, bg:'#facc15'} },
-            ball: { 
-                'clasica':{es:'Clásica',p:0,bg:'#fff',pat:'#000'}, 'oro':{es:'Oro',p:500,bg:'#facc15',pat:'#b8860b',g:'#facc15'}, 'fuego':{es:'Fuego',p:800,bg:'#1f2937',pat:'#ef4444',g:'#ef4444'}, 
-                'galaxia':{es:'Galaxia',p:1200,bg:'#1e1b4b',pat:'#8b5cf6',g:'#c4b5fd'}, 'neon':{es:'Neón',p:600,bg:'#000',pat:'#39ff14',g:'#39ff14'}, 'magma':{es:'Magma',p:900,bg:'#450a0a',pat:'#f97316',g:'#f97316'}, 
-                'hielo':{es:'Hielo',p:700,bg:'#e0f2fe',pat:'#38bdf8',g:'#38bdf8'}, 'bosque':{es:'Bosque',p:500,bg:'#14532d',pat:'#4ade80'}, 'cuero':{es:'Cuero',p:400,bg:'#78350f',pat:'#451a03'}, 
-                'disco':{es:'Disco',p:1000,bg:'#f8fafc',pat:'#6366f1',g:'#818cf8'}, 'fantasma':{es:'Fantasma',p:1500,bg:'#f3f4f6',pat:'#cbd5e1',g:'#fff'}, 'arcoiris':{es:'Arcoíris',p:2000,bg:'#ec4899',pat:'#3b82f6',g:'#eab308'}, 
-                'metal':{es:'Metal',p:800,bg:'#94a3b8',pat:'#475569'}, 'rayo':{es:'Rayo',p:1300,bg:'#fef08a',pat:'#ca8a04',g:'#fde047'}, 'slime':{es:'Slime',p:600,bg:'#86efac',pat:'#16a34a'}
-            },
-            skin: { 
-                'base':{es:'Base',p:0,c:'#ef4444',s:'#ffb8b8'}, 'robot':{es:'Robot',p:1000,c:'#94a3b8',s:'#475569'}, 'alien':{es:'Alien',p:1200,c:'#22c55e',s:'#14532d'}, 
-                'ninja':{es:'Ninja',p:1500,c:'#111827',s:'#374151'}, 'zombie':{es:'Zombie',p:800,c:'#4d7c0f',s:'#a3e635'}, 'pirata':{es:'Pirata',p:1100,c:'#78350f',s:'#fef3c7'}, 
-                'astro':{es:'Astronauta',p:2000,c:'#f8fafc',s:'#cbd5e1'}, 'cabal':{es:'Caballero',p:1800,c:'#d1d5db',s:'#9ca3af'}, 'viking':{es:'Vikingo',p:1600,c:'#451a03',s:'#d97706'}, 
-                'demon':{es:'Demonio',p:2500,c:'#7f1d1d',s:'#ef4444'}, 'cyborg':{es:'Cyborg',p:1700,c:'#38bdf8',s:'#0f172a'}, 'momia':{es:'Momia',p:900,c:'#fef3c7',s:'#b45309'}, 
-                'rey':{es:'Rey',p:3000,c:'#facc15',s:'#ca8a04'}, 'mago':{es:'Mago',p:2200,c:'#c084fc',s:'#4c1d95'}, 'orco':{es:'Orco',p:1400,c:'#15803d',s:'#064e3b'}
-            },
-            stadium:{ 
-                'clasico':{es:'Clásico',p:0,c1:'#4caf50',c2:'#45a049',l:'rgba(255,255,255,0.6)'}, 'nieve':{es:'Nieve',p:1000,c1:'#f1f5f9',c2:'#e2e8f0',l:'#94a3b8'}, 
-                'tierra':{es:'Tierra',p:800,c1:'#d97706',c2:'#b45309',l:'#fef3c7'}, 'noche':{es:'Noche',p:1200,c1:'#0f172a',c2:'#1e293b',l:'#38bdf8'}, 
-                'desier':{es:'Desierto',p:1500,c1:'#fde047',c2:'#facc15',l:'#854d0e'}, 'jungla':{es:'Jungla',p:1400,c1:'#064e3b',c2:'#065f46',l:'#34d399'}, 
-                'volcan':{es:'Volcán',p:2000,c1:'#450a0a',c2:'#7f1d1d',l:'#f97316'}, 'ciudad':{es:'Ciudad',p:1800,c1:'#334155',c2:'#1e293b',l:'#facc15'}, 
-                'espac':{es:'Espacio',p:3000,c1:'#020617',c2:'#1e1b4b',l:'#a29bfe'}, 'futur':{es:'Futuro',p:2500,c1:'#164e63',c2:'#083344',l:'#22d3ee'},
-                'playa':{es:'Playa',p:1300,c1:'#fef08a',c2:'#fde047',l:'#0ea5e9'}, 'pantano':{es:'Pantano',p:1100,c1:'#3f6212',c2:'#365314',l:'#a3e635'}, 
-                'luna':{es:'Luna',p:2800,c1:'#64748b',c2:'#475569',l:'#f8fafc'}, 'marte':{es:'Marte',p:2600,c1:'#b91c1c',c2:'#991b1b',l:'#fca5a5'}, 
-                'ruinas':{es:'Ruinas',p:1700,c1:'#a8a29e',c2:'#71717a',l:'#2dd4bf'}
-            },
-            effect: { 
-                'ninguno':{es:'Ninguno',p:0}, 'confeti':{es:'Confeti',p:500}, 'fuego':{es:'Fuego',p:1000}, 'rayos':{es:'Rayos',p:1200}, 'burbu':{es:'Burbujas',p:700}, 
-                'coraz':{es:'Corazones',p:800}, 'estrell':{es:'Estrellas',p:1000}, 'humo':{es:'Humo',p:600}, 'oro_ef':{es:'Lluvia Oro',p:2000}, 'pixel':{es:'Pixel',p:1500},
-                'agua':{es:'Agua',p:900}, 'viento':{es:'Viento',p:1100}, 'sangre':{es:'Sangre',p:1800}, 'hojas':{es:'Hojas',p:700}, 'notas':{es:'Música',p:1300}
-            }
-        };
-
-        const mDefs = { daily:[{id:'d1', es:'Juega 1 partido', t:1, r:50, tp:'play'}, {id:'d2', es:'Anota 3 goles', t:3, r:80, tp:'goals'}, {id:'d3', es:'Gana 1 partido', t:1, r:100, tp:'wins'}], weekly:[{id:'w1', es:'Juega 10 partidos', t:10, r:500, tp:'play'}, {id:'w2', es:'Anota 20 goles', t:20, r:800, tp:'goals'}, {id:'w3', es:'Gana 5 partidos', t:5, r:1000, tp:'wins'}, {id:'w4', es:'Juega 20 partidos', t:20, r:1200, tp:'play'}, {id:'w5', es:'Anota 50 goles', t:50, r:1500, tp:'goals'}, {id:'w6', es:'Gana 10 partidos', t:10, r:2000, tp:'wins'}] };
-
-        let chaosActiveEvent = null, chaosTimer = 0, chaosEventDuration = 0;
-        let wind = {vx: 0, vy: 0}, portals = [], mudPuddles = [], portalCooldown = 0, iceMode = false;
-        const chaosNames = { 'wind': '🌪️ ¡VIENTO EXTREMO!', 'mud': '💩 ¡SUELO PEGAJOSO!', 'portals': '🌀 ¡PORTALES ACTIVOS!', 'giant_ball': '⚽ ¡PELOTA GIGANTE!', 'ice': '🧊 ¡CANCHA DE HIELO!' };
-
-        let activeUserEmail = localStorage.getItem('futActiveEmail') || 'invitado';
-        let sysTheme = localStorage.getItem('futTheme') || 'dark'; let sysLang = localStorage.getItem('futLang') || 'es';
-        
-        let allAccounts = {};
-        try {
-            allAccounts = JSON.parse(localStorage.getItem('futAccounts')) || {};
-        } catch(e) { allAccounts = {}; }
-
-        if (!allAccounts['invitado']) {
-            allAccounts['invitado'] = { name: 'JugadorInvitado', stars: 0, password: "", coins: 500, dia: 100, xp: 0, level: 1, passPremium: false, claimedPass: [], owned: { ball: ['clasica'], skin: ['base'], stadium: ['clasico'], effect: ['ninguno'] }, equipped: { ball: 'clasica', skin: 'base', stadium: 'clasico', effect: 'ninguno' }, code: Math.floor(100000 + Math.random() * 900000).toString(), stats: { daily:{play:0,goals:0,wins:0,claimed:[]}, weekly:{play:0,goals:0,wins:0,claimed:[]}, lastDaily:new Date().toDateString(), lastWeekly:new Date().toDateString() }, friends: [], requests: [], hudPrefs: { joy:{x:0,y:0,s:1}, actions:{x:0,y:0,s:1}, emotes:{x:0,y:0,s:1} }, optControls: false };
-            localStorage.setItem('futAccounts', JSON.stringify(allAccounts));
-        }
-        let currentUser;
-        let matchStats = {p1Pos:0, p2Pos:0, p1Sho:0, p2Sho:0, p1Stl:0, p2Stl:0};
-        let authMode = 'login'; 
-
-        function loadAccount(email) {
-            if (!allAccounts[email]) return; 
-            currentUser = allAccounts[email];
-            
-            if (!currentUser.claimedPass) currentUser.claimedPass = []; 
-            if (!currentUser.hudPrefs) currentUser.hudPrefs = { joy:{x:0,y:0,s:1}, actions:{x:0,y:0,s:1}, emotes:{x:0,y:0,s:1} };
-            if (!currentUser.requests) currentUser.requests = [];
-            if (!currentUser.friends) currentUser.friends = [];
-            if (!currentUser.notifs) currentUser.notifs = [];
-            if (currentUser.optControls === undefined) currentUser.optControls = false;
-            if (!currentUser.code) currentUser.code = Math.floor(100000 + Math.random() * 900000).toString(); 
-            
-            let btnOpenLogin = document.getElementById('btn-open-login'); let btnLogout = document.getElementById('btn-logout');
-            if(btnOpenLogin && btnLogout) { if (email === 'invitado') { btnOpenLogin.style.display = 'flex'; btnLogout.style.display = 'none'; } else { btnOpenLogin.style.display = 'none'; btnLogout.style.display = 'flex'; } }
-            
-            applyProfile(); checkMissionResets(); renderMissions(); applyHUDPrefs();
-            listenToFirebaseSocial();
-        }
-        function saveAccounts() { allAccounts[activeUserEmail] = currentUser; localStorage.setItem('futAccounts', JSON.stringify(allAccounts)); applyProfile(); }
-
-        function checkInitialLogin() { if(activeUserEmail === 'invitado') { openScreen('login-screen'); } }
-        function toggleAuthMode() { authMode = authMode === 'login' ? 'register' : 'login'; document.getElementById('auth-title').innerText = authMode === 'login' ? 'Iniciar Sesión' : 'Registrarse'; document.getElementById('login-pass-confirm').style.display = authMode === 'login' ? 'none' : 'block'; document.getElementById('btn-auth-action').innerText = authMode === 'login' ? 'Entrar' : 'Crear Cuenta'; document.getElementById('auth-toggle-link').innerText = authMode === 'login' ? '¿No tienes cuenta? Regístrate' : '¿Ya tienes cuenta? Inicia sesión'; }
-        function processAuth() { let email = document.getElementById('login-email').value.trim().toLowerCase(); let pass = document.getElementById('login-pass').value.trim(); if (!email || !pass) return alert("Por favor completa los campos."); if (!email.includes('@')) return alert("Introduce un correo válido."); const loader = document.getElementById('loading-overlay'); loader.style.display = 'flex'; setTimeout(() => loader.style.opacity = '1', 10); setTimeout(() => { loader.style.opacity = '0'; setTimeout(()=> loader.style.display='none', 400); if (authMode === 'register') { let passC = document.getElementById('login-pass-confirm').value.trim(); if(pass !== passC) return alert("Las contraseñas no coinciden."); if(allAccounts[email]) return alert("Este correo ya está registrado."); if(pass.length < 4) return alert("La contraseña es muy corta."); allAccounts[email] = JSON.parse(JSON.stringify(allAccounts['invitado'])); allAccounts[email].password = pass; allAccounts[email].name = email.split('@')[0].substring(0, 10); activeUserEmail = email; localStorage.setItem('futActiveEmail', activeUserEmail); loadAccount(activeUserEmail); saveAccounts(); alert("¡Cuenta creada exitosamente!"); closeScreen('login-screen'); } else { if (!allAccounts[email]) return alert("No existe una cuenta."); if (allAccounts[email].password !== pass && allAccounts[email].password !== 'google_auth') return alert("Contraseña incorrecta."); activeUserEmail = email; localStorage.setItem('futActiveEmail', activeUserEmail); loadAccount(activeUserEmail); saveAccounts(); closeScreen('login-screen'); } }, 800); }
-        function closeLoginIfGuest() { closeScreen('login-screen'); }
-        function simulateGoogleLogin() { let fakeEmail = prompt("SIMULADOR GOOGLE: Ingresa tu correo", "jugador@gmail.com"); if(fakeEmail) { fakeEmail = fakeEmail.toLowerCase().trim(); const loader = document.getElementById('loading-overlay'); loader.style.display = 'flex'; setTimeout(() => loader.style.opacity = '1', 10); setTimeout(() => { loader.style.opacity = '0'; setTimeout(()=> loader.style.display='none', 400); if(!allAccounts[fakeEmail]) { allAccounts[fakeEmail] = JSON.parse(JSON.stringify(allAccounts['invitado'])); allAccounts[fakeEmail].password = 'google_auth'; allAccounts[fakeEmail].name = fakeEmail.split('@')[0].substring(0, 10); } activeUserEmail = fakeEmail; localStorage.setItem('futActiveEmail', activeUserEmail); loadAccount(activeUserEmail); saveAccounts(); closeScreen('login-screen'); }, 1000); } }
-        function processLogout() { activeUserEmail = 'invitado'; localStorage.setItem('futActiveEmail', activeUserEmail); loadAccount('invitado'); closeScreen('settings-screen'); }
-
-        function applyProfile() { 
-            setTxt('dash-coins', currentUser.coins); setTxt('dash-card-coins', currentUser.coins); 
-            setTxt('dash-dia', currentUser.dia); setTxt('dash-card-dia', currentUser.dia);
-            setTxt('dash-username', currentUser.name); setTxt('dash-avatar', currentUser.name.charAt(0).toUpperCase()); 
-            setTxt('dash-level', currentUser.level); setVal('player-name-input', currentUser.name); 
-            setTxt('dash-stars', currentUser.stars || 0); setTxt('dash-card-stars', currentUser.stars || 0); 
-            
-            setTxt('dash-friend-code', currentUser.code); 
-            setTxt('modal-friend-code-top', currentUser.code); 
-            setVal('invite-link-input', "https://futcard.app/invite?c=" + currentUser.code);
-            
-            let xpNeeded = currentUser.level * 100; setTxt('dash-xp-text', `${currentUser.xp} / ${xpNeeded}`); 
-            let xpFill = document.getElementById('dash-xp-fill'); if(xpFill) xpFill.style.width = `${Math.min((currentUser.xp/xpNeeded)*100, 100)}%`; 
-            setTxt('lobby-p1-name', currentUser.name); setTxt('lobby-p1-av', currentUser.name.charAt(0).toUpperCase()); 
-            document.body.className = sysTheme + "-theme"; 
-            document.querySelectorAll('[data-i18n]').forEach(el => { let key = el.getAttribute('data-i18n'); if(i18n[sysLang] && i18n[sysLang][key]) el.innerHTML = i18n[sysLang][key]; }); 
-            updateGameStyles(); 
-        }
-        function addXP(amount) { currentUser.xp += amount; let xpNeeded = currentUser.level * 100; if (currentUser.xp >= xpNeeded) { currentUser.level++; currentUser.xp -= xpNeeded; currentUser.coins += 50; alert(`¡Nivel ${currentUser.level}! (+50 🪙)`); } saveAccounts(); }
-
-        function applyHUDPrefs() { if(!currentUser.hudPrefs) return; let joy = document.getElementById('virtual-joystick'); let acts = document.getElementById('action-buttons-box'); let emts = document.getElementById('emote-container-box'); if(joy) joy.style.transform = `translate(${currentUser.hudPrefs.joy.x}px, ${currentUser.hudPrefs.joy.y}px) scale(${currentUser.hudPrefs.joy.s})`; if(acts) acts.style.transform = `translate(${currentUser.hudPrefs.actions.x}px, ${currentUser.hudPrefs.actions.y}px) scale(${currentUser.hudPrefs.actions.s})`; if(emts) emts.style.transform = `translate(${currentUser.hudPrefs.emotes.x}px, ${currentUser.hudPrefs.emotes.y}px) scale(${currentUser.hudPrefs.emotes.s})`; }
-        let activeHUDObj = null; let initTouchX, initTouchY, initObjX, initObjY;
-        function makeDraggable(id, prefKey) { let el = document.getElementById(id); if(!el) return; el.classList.add('hud-editable'); el.addEventListener('touchstart', e => { if(gameState !== 'hud_edit') return; e.preventDefault(); activeHUDObj = { el, key: prefKey }; let touch = e.touches ? e.touches[0] : e; initTouchX = touch.clientX; initTouchY = touch.clientY; initObjX = currentUser.hudPrefs[prefKey].x || 0; initObjY = currentUser.hudPrefs[prefKey].y || 0; let slider = document.getElementById('hud-scale-slider'); if(slider) slider.value = currentUser.hudPrefs[prefKey].s || 1; document.querySelectorAll('.hud-editable').forEach(n => n.style.boxShadow = ''); el.style.boxShadow = '0 0 20px yellow'; }, {passive: false}); el.addEventListener('touchmove', e => { if(gameState !== 'hud_edit' || !activeHUDObj || activeHUDObj.el !== el) return; e.preventDefault(); let touch = e.touches ? e.touches[0] : e; let dx = touch.clientX - initTouchX; let dy = touch.clientY - initTouchY; currentUser.hudPrefs[prefKey].x = initObjX + dx; currentUser.hudPrefs[prefKey].y = initObjY + dy; applyHUDPrefs(); }, {passive: false}); }
-        function enterHUDEdit() { closeScreen('settings-screen'); document.getElementById('dashboard-screen').style.display = 'none'; document.getElementById('lobby-screen').style.display = 'none'; document.getElementById('bottom-nav').style.display = 'none'; document.getElementById('match-interface').style.display = 'flex'; clearInterval(tInt); gameState = 'hud_edit'; resetPositions(); updateGameStyles(); setTxt('score1', 0); setTxt('score2', 0); setTxt('timer', 'EDICIÓN'); document.getElementById('hud-edit-overlay').style.display = 'flex'; applyHUDPrefs(); document.querySelectorAll('.hud-editable').forEach(n => n.style.boxShadow = '0 0 10px rgba(255,255,255,0.5)'); }
-        function updateHUDScale(val) { if(activeHUDObj) { currentUser.hudPrefs[activeHUDObj.key].s = parseFloat(val); applyHUDPrefs(); } }
-        function resetHUD() { currentUser.hudPrefs = { joy: {x:0, y:0, s:1}, actions: {x:0, y:0, s:1}, emotes: {x:0, y:0, s:1} }; applyHUDPrefs(); let slider = document.getElementById('hud-scale-slider'); if(slider) slider.value = 1; }
-        function saveHUD() { saveAccounts(); document.getElementById('hud-edit-overlay').style.display = 'none'; document.querySelectorAll('.hud-editable').forEach(node => node.style.boxShadow = ''); goHome(); }
-
-        function applyTheme(theme) { sysTheme = theme; localStorage.setItem('futTheme', theme); document.body.className = theme + "-theme"; }
-        function applyLanguage(lang) { sysLang = lang; localStorage.setItem('futLang', lang); document.querySelectorAll('[data-i18n]').forEach(el => { let key = el.getAttribute('data-i18n'); if(i18n[lang] && i18n[lang][key]) el.innerHTML = i18n[lang][key]; }); renderMissions(); if(document.getElementById('shop-screen').style.display==='flex') renderShop(); renderPass(); }
-        
-        function openSettings() { 
-            setVal('setting-theme', sysTheme); 
-            setVal('setting-lang', sysLang); 
-            setVal('setting-opt-controls', currentUser.optControls ? "true" : "false");
-            openScreen('settings-screen'); 
-        }
-        function saveSettings() { 
-            let nameInput = document.getElementById('player-name-input'); currentUser.name = nameInput ? nameInput.value : currentUser.name; 
-            let themeSel = document.getElementById('setting-theme'); if(themeSel) applyTheme(themeSel.value); 
-            let langSel = document.getElementById('setting-lang'); if(langSel) applyLanguage(langSel.value); 
-            let optSel = document.getElementById('setting-opt-controls'); if(optSel) currentUser.optControls = (optSel.value === "true");
-            saveAccounts(); closeScreen('settings-screen'); 
-            renderFriends(); 
-            renderNotifs();
-        }
-
-        function checkMissionResets() { let t = new Date().toDateString(); let w = new Date(); w.setHours(0,0,0,0); let d = w.getDay()||7; if(d!==1) w.setHours(-24*(d-1)); w=w.toDateString(); let changed=false; if(currentUser.stats.lastDaily!==t){currentUser.stats.daily={play:0,goals:0,wins:0,claimed:[]};currentUser.stats.lastDaily=t;changed=true;} if(currentUser.stats.lastWeekly!==w){currentUser.stats.weekly={play:0,goals:0,wins:0,claimed:[]};currentUser.stats.lastWeekly=w;changed=true;} if(changed) saveAccounts(); }
-        function addStat(type, amount) { checkMissionResets(); currentUser.stats.daily[type]+=amount; currentUser.stats.weekly[type]+=amount; addXP(10); saveAccounts(); let eqScreen = document.getElementById('equipo-screen'); if(eqScreen && eqScreen.style.display==='flex') renderMissions(); }
-        function openEquipo() { openScreen('equipo-screen'); checkMissionResets(); renderMissions(); }
-
-        function renderMissions() {
-            const rGrp = (grp, elId) => {
-                const cont = document.getElementById(elId); if(!cont) return; cont.innerHTML = '';
-                mDefs[grp].forEach(m => {
-                    let prog = Math.min(currentUser.stats[grp][m.tp], m.t); let pct = (prog/m.t)*100; let isC = currentUser.stats[grp].claimed.includes(m.id); let canC = prog>=m.t && !isC;
-                    let btnText = isC ? (sysLang==='en'?'Claimed':'Cobrado') : (sysLang==='en'?'Claim':'Cobrar');
-                    let btn = isC ? `<button class="btn-claim" disabled style="background:var(--success)">${btnText}</button>` : `<button class="btn-claim" ${canC?'':'disabled'} onclick="claimMission('${grp}', '${m.id}', ${m.r})">${btnText}</button>`;
-                    let title = m[sysLang] || m.es;
-                    cont.innerHTML += `<div class="mission-card"><div class="mission-info"><p style="font-weight:bold;margin:0 0 8px 0;">${title}</p><div class="progress-bar-bg"><div class="progress-bar-fill" style="width:${pct}%"></div></div><div style="font-size:0.8rem;color:var(--text-muted);font-weight:bold;display:flex;justify-content:space-between;"><span>${prog}/${m.t}</span><span style="color:var(--gold)">🪙 ${m.r}</span></div></div>${btn}</div>`;
-                });
-            }; rGrp('daily', 'daily-missions-list'); rGrp('weekly', 'weekly-missions-list');
-        }
-        function claimMission(g, id, r) { currentUser.stats[g].claimed.push(id); currentUser.coins+=r; saveAccounts(); renderMissions(); }
-
-        function renderPass() {
-            let progLabel = document.getElementById('pass-global-prog'); if(progLabel) progLabel.innerText = `${currentUser.level}/100`; 
-            let btnBuy = document.getElementById('btn-buy-pass'); if(btnBuy) btnBuy.style.display = currentUser.passPremium ? "none" : "block";
-            let cont = document.getElementById('pass-track-content'); if(!cont) return; cont.innerHTML = '';
-            for(let i=1; i<=100; i++) {
-                let isUnl = currentUser.level >= i; let isPrem = !currentUser.passPremium && i%5!==0 && i>1;
-                let ico = (i%10===0)?'💎':(i%5===0)?'📦':'🪙'; let txt = (i%10===0)?`10 Gems`:`${i*1000} Coins`;
-                let isClaimed = currentUser.claimedPass && currentUser.claimedPass.includes(i);
-                let stat = '';
-                if(isUnl) { if(!isPrem) { if(isClaimed) stat = `<span style="color:var(--success);font-weight:bold;font-size:0.8rem;">✔️</span>`; else stat = `<button class="btn-claim" style="padding:4px 8px;" onclick="claimPass(${i}, ${i%10===0})">Reclamar</button>`; } else stat = `<span style="color:var(--danger);font-size:0.8rem;">Premium</span>`; } else { stat = `<span style="color:var(--text-muted);font-size:0.8rem;">🔒</span>`; }
-                let premCls = (i%10===0) ? 'border-color:var(--gold);background:var(--panel-bg);' : ''; let bdColor = isUnl ? (isPrem ? '#94a3b8' : 'var(--success)') : '#94a3b8';
-                cont.innerHTML += `<div class="pass-node" style="opacity:${isUnl?1:0.5}"><div class="node-level">Niv. ${i}</div><div style="width:60px;height:60px;border-radius:50%;display:flex;justify-content:center;align-items:center;font-size:1.5rem;border:3px solid ${bdColor};${premCls}">${ico}</div><div style="margin:5px 0;font-size:0.8rem;font-weight:bold;">${txt}</div>${stat}</div>`;
-            }
-        }
-        function claimPass(lvl, isGem) { if(!currentUser.claimedPass) currentUser.claimedPass = []; currentUser.claimedPass.push(lvl); if(isGem) currentUser.dia += 10; else currentUser.coins += lvl * 1000; saveAccounts(); renderPass(); }
-        function buyPremiumPass() { if(currentUser.dia >= 50) { currentUser.dia -= 50; currentUser.passPremium = true; saveAccounts(); renderPass(); } else alert("No tienes diamantes (50💎)."); }
-
-        function openCasillero() {
-            openScreen('casillero-screen');
-            renderCasillero('ball');
-        }
-
-        function renderCasillero(type) {
-            ['ball','skin','stadium','effect'].forEach(t => {
-                let btn = document.getElementById('tab-cas-' + t);
-                if(btn) { if(t===type) btn.classList.add('active'); else btn.classList.remove('active'); }
-            });
-            const cont = document.getElementById('casillero-items');
-            if(!cont) return;
-            cont.innerHTML = '';
-            
-            let btnEq = sysLang==='en'?'Equip':'Equipar'; 
-            let btnUse = sysLang==='en'?'In Use':'En Uso';
-
-            currentUser.owned[type].forEach(id => {
-                let it = FULL_CATALOG[type][id]; if(!it) return;
-                let title = it[sysLang] || it.es;
-                let isE = currentUser.equipped[type] === id;
-                let btn = isE ? `<button class="card-btn" disabled style="background:var(--success); color:white;">${btnUse}</button>` : `<button class="card-btn" style="background:var(--primary); color:white;" onclick="equipCasillero('${type}','${id}')">${btnEq}</button>`;
-                
-                let visual = type==='ball' ? `<div class="ball-preview" style="background:${it.bg}; border-color:${it.pat || '#fff'}; border-style:dotted;"></div>` : type==='skin' ? `<div class="ball-preview" style="background:${it.c}; border-color:${it.s || '#fff'};"></div>` : type==='stadium' ? `<div class="ball-preview" style="background:${it.c1}; border-color:${it.l || '#fff'}; border-radius:5px;"></div>` : `<div class="ball-preview" style="background:var(--input-bg); border-color:var(--border-color); display:flex;justify-content:center;align-items:center;font-size:1.5rem;">✨</div>`;
-                
-                cont.innerHTML += `<div class="shop-card owned ${isE?'equipped':''}">${visual}<h3 style="font-size:0.8rem; margin:5px 0; color:var(--text-color);">${title}</h3>${btn}</div>`;
-            });
-        }
-
-        function equipCasillero(type, id) {
-            currentUser.equipped[type] = id;
-            saveAccounts();
-            renderCasillero(type);
-            updateGameStyles();
-            if(document.getElementById('shop-screen').style.display==='flex') renderShop();
-        }
-
-        let dailyShop = { ball:[], skin:[], stadium:[], effect:[] };
-        function generateDailyShop() {
-            let today = new Date().toDateString(); let seed = 0; for(let i=0; i<today.length; i++) seed += today.charCodeAt(i);
-            const r = () => { seed = (seed * 9301 + 49297) % 233280; return seed / 233280; };
-            for(let key in dailyShop) {
-                let pool = Object.keys(FULL_CATALOG[key]);
-                for (let i = pool.length - 1; i > 0; i--) { const j = Math.floor(r() * (i + 1)); [pool[i], pool[j]] = [pool[j], pool[i]]; }
-                dailyShop[key] = pool.slice(0, 10);
-            }
-        }
-        generateDailyShop();
-
-        function updateShopTimer() {
-            let now = new Date(); let mid = new Date(); mid.setHours(24,0,0,0); let diff = mid - now;
-            let h = Math.floor(diff/3600000); let m = Math.floor((diff%3600000)/60000); let s = Math.floor((diff%60000)/1000);
-            setTxt('shop-rotation-timer', `Cambio en: ${h<10?'0':''}${h}:${m<10?'0':''}${m}:${s<10?'0':''}${s}`);
-            if(diff <= 1000) { generateDailyShop(); if(document.getElementById('shop-screen').style.display==='flex') renderShop(); }
-        }
-        setInterval(updateShopTimer, 1000);
-
-        function scrollToShopSec(id) { let el = document.getElementById('shop-sec-' + id); let container = document.getElementById('shop-all-items'); if(el && container) { container.scrollTo({ top: el.offsetTop - container.offsetTop, behavior: 'smooth' }); } }
-        
-        function renderShop() { 
-            const cont = document.getElementById('shop-all-items'); if(!cont) return; cont.innerHTML = ''; 
-            let btnEq = sysLang==='en'?'Equip':'Equipar'; let btnUse = sysLang==='en'?'In Use':'Em Uso'; 
-            const sections = [ { id: 'packs', title: sysLang==='en'?'Packs':sysLang==='pt'?'Pacotes':'Sobres 💎' }, { id: 'ball', title: sysLang==='en'?'Balls':sysLang==='pt'?'Bolas':'Balones' }, { id: 'skin', title: sysLang==='en'?'Characters':sysLang==='pt'?'Personagens':'Personajes' }, { id: 'stadium', title: sysLang==='en'?'Stadiums':sysLang==='pt'?'Estádios':'Estadios' }, { id: 'effect', title: sysLang==='en'?'Effects':sysLang==='pt'?'Efeitos':'Efectos' } ];
-
-            sections.forEach(sec => {
-                let html = `<h3 id="shop-sec-${sec.id}" style="width:100%; color:var(--gold); border-bottom:1px solid var(--border-color); padding-bottom:5px; margin: 20px 0 10px 0; text-align: left;">${sec.title}</h3><div class="shop-grid">`;
-                let itemsToShow = sec.id === 'packs' ? Object.keys(FULL_CATALOG.packs) : dailyShop[sec.id];
-                
-                itemsToShow.forEach(id => {
-                    let it = FULL_CATALOG[sec.id][id]; if(!it) return;
-                    let title = it[sysLang] || it.es;
-                    if(sec.id === 'packs') {
-                        html += `<div class="shop-card" style="background:${it.bg}; box-shadow:0 0 15px ${it.bg};"><div style="font-size:2rem; margin:10px 0;">📦</div><h3 style="font-size:0.8rem;color:black;">${title}</h3><button class="card-btn" style="background:black; color:white;" ${currentUser.dia < it.p ? 'disabled' : ''} onclick="openPack('${id}')">💎 ${it.p}</button></div>`;
-                    } else {
-                        let isO = currentUser.owned[sec.id].includes(id); let isE = currentUser.equipped[sec.id] === id; 
-                        let btn = isE ? `<button class="card-btn" disabled style="background:var(--success); color:white;">${btnUse}</button>` : isO ? `<button class="card-btn" style="background:var(--primary); color:white;" onclick="equipI('${sec.id}','${id}')">${btnEq}</button>` : `<button class="card-btn" style="background:var(--input-bg); color:white;" ${currentUser.coins < it.p ? 'disabled' : ''} onclick="buyI('${sec.id}','${id}')">🪙 ${it.p}</button>`; 
-                        let visual = sec.id==='ball' ? `<div class="ball-preview" style="background:${it.bg}; border-color:${it.pat || '#fff'}; border-style:dotted;"></div>` : sec.id==='skin' ? `<div class="ball-preview" style="background:${it.c}; border-color:${it.s || '#fff'};"></div>` : sec.id==='stadium' ? `<div class="ball-preview" style="background:${it.c1}; border-color:${it.l || '#fff'}; border-radius:5px;"></div>` : `<div class="ball-preview" style="background:var(--input-bg); border-color:var(--border-color); display:flex;justify-content:center;align-items:center;font-size:1.5rem;">✨</div>`;
-                        html += `<div class="shop-card ${isO?'owned':''} ${isE?'equipped':''}">${visual}<h3 style="font-size:0.8rem; margin:5px 0; color:var(--text-color);">${title}</h3>${btn}</div>`; 
-                    }
-                }); html += `</div>`; cont.innerHTML += html;
-            });
-        }
-        function buyI(type, id) { let it = FULL_CATALOG[type][id]; if (currentUser.coins >= it.p) { currentUser.coins -= it.p; currentUser.owned[type].push(id); equipI(type, id); } }
-        function equipI(type, id) { currentUser.equipped[type] = id; saveAccounts(); renderShop(); updateGameStyles(); }
-        function openShop() { generateDailyShop(); openScreen('shop-screen'); renderShop(); setTimeout(()=> { let c = document.getElementById('shop-all-items'); if(c) c.scrollTop = 0; }, 100); }
-
-        let pendingReward = null;
-        function openPack(type) {
-            let cost = FULL_CATALOG.packs[type].p; if (currentUser.dia < cost) return alert("No tienes diamantes suficientes.");
-            currentUser.dia -= cost; saveAccounts();
-            let pool = [];
-            for(let id in FULL_CATALOG.ball) if(!currentUser.owned.ball.includes(id)) pool.push({c:'ball', id:id});
-            for(let id in FULL_CATALOG.skin) if(!currentUser.owned.skin.includes(id)) pool.push({c:'skin', id:id});
-            if(pool.length > 0) { let r = pool[Math.floor(Math.random() * pool.length)]; currentUser.owned[r.c].push(r.id); pendingReward = { type: 'item', text: FULL_CATALOG[r.c][r.id].es }; } 
-            else { let cCoins = cost * 20; currentUser.coins += cCoins; pendingReward = { type: 'coins', text: `+${cCoins} 🪙` }; }
-            saveAccounts(); closeScreen('shop-screen');
-            document.getElementById('pack-card').style.display = 'flex'; document.getElementById('pack-reveal').style.display = 'none'; document.getElementById('pack-close-btn').style.display = 'none'; setTxt('pack-title', "TOCA PARA ABRIR");
-            openScreen('pack-animation-screen');
-        }
-        function revealPack() { if(!pendingReward) return; document.getElementById('pack-card').style.display = 'none'; document.getElementById('pack-reveal').style.display = 'flex'; setTxt('pack-reveal-text', pendingReward.text); setTxt('pack-title', "¡RECOMPENSA!"); document.getElementById('pack-close-btn').style.display = 'block'; }
-        function closePack() { closeScreen('pack-animation-screen'); pendingReward = null; openShop(); }
-
-        function switchFriendsTab(tabName) { 
-            ['list', 'req', 'add'].forEach(t => { 
-                let ct = document.getElementById('fr-content-' + t); if(ct) ct.style.display = 'none'; 
-                let tb = document.getElementById('tab-fr-' + t); if(tb) tb.classList.remove('active'); 
-            }); 
-            let ctOpen = document.getElementById('fr-content-' + tabName); if(ctOpen) ctOpen.style.display = 'block'; 
-            let tbOpen = document.getElementById('tab-fr-' + tabName); if(tbOpen) tbOpen.classList.add('active'); 
-        }
-        
-        function renderFriends() {
-            const reqCont = document.getElementById('pending-list'); const frCont = document.getElementById('friends-list'); if(reqCont) reqCont.innerHTML=''; if(frCont) frCont.innerHTML='';
-            setTxt('fr-count', currentUser.friends.length); setTxt('req-count', currentUser.requests.length);
-
-            if(currentUser.requests.length === 0) { 
-                if(reqCont) reqCont.innerHTML = `<div style="text-align:center; padding:30px; color:var(--text-muted);"><div style="font-size:3rem; margin-bottom:10px;">📥</div>No tienes solicitudes.</div>`; 
-            } else { 
-                currentUser.requests.forEach((req, i) => { 
-                    let btnAcc = currentUser.optControls ? '✔️' : 'Aceptar';
-                    let btnRej = currentUser.optControls ? '❌' : 'Rechazar';
-                    if(reqCont) reqCont.innerHTML += `<div class="friend-item"><div class="friend-avatar" style="background:#1e40af; color:white;">${req.name.charAt(0)}<div class="status-circle"></div></div><div class="friend-info"><div class="friend-name-line"><div class="friend-name">${req.name}</div></div><div class="friend-status-text">Código: ${req.code}</div></div><div style="display:flex; gap:5px;"><button class="btn-small" onclick="acceptFriend(${i})" style="background:var(--success);">${btnAcc}</button><button class="btn-small" onclick="rejectFriend(${i})" style="background:var(--danger);">${btnRej}</button></div></div>`; 
-                }); 
-            }
-            
-            if(currentUser.friends.length === 0) { if(frCont) frCont.innerHTML = `<div style="text-align:center; padding:30px; color:var(--text-muted);"><div style="font-size:3rem; margin-bottom:10px;">👥</div>No tienes amigos aún.</div>`; } 
-            else { 
-                currentUser.friends.forEach(fr => { 
-                    if(frCont) frCont.innerHTML += `<div class="friend-item" style="cursor:pointer;" onclick="openFriendProfile('${fr.code}', '${fr.name}', '${fr.docId}')">
-                        <div class="friend-avatar" style="background:#16a34a; color:white;">${fr.name.charAt(0)}<div class="status-circle"></div></div>
-                        <div class="friend-info" style="flex:1;">
-                            <div class="friend-name-line"><div class="friend-name">${fr.name}</div><div class="friend-stars">★</div></div>
-                            <div class="friend-status-text"><span class="disconnect-icon"></span> Toca para ver perfil</div>
-                        </div>
-                        <button class="btn-small" onclick="event.stopPropagation(); challengeOnline('${fr.code}', '${fr.name}')" style="background:var(--primary);">Desafiar</button>
-                    </div>`; 
-                }); 
-            }
-        }
-
-        function copyText(text) { navigator.clipboard.writeText(text).then(()=>alert("¡Copiado!")).catch(e=>console.error(e)); }
-        function copyMyCode() { copyText(currentUser.code); }
-        function copyInviteLink() { let link = document.getElementById('invite-link-input'); if(link) copyText(link.value); }
-        function shareInviteLink() { let link = document.getElementById('invite-link-input'); if (navigator.share && link) { navigator.share({ title: 'FutCard Play', text: '¡Agrégame!', url: link.value }); } else alert("No soportado."); }
-        function toggleQR() { const box = document.getElementById('qr-display-box'); const btn = document.getElementById('btn-toggle-qr'); if(box && btn) { if(box.style.display === 'none') { box.style.display = 'flex'; btn.innerHTML = '🙈 Ocultar'; } else { box.style.display = 'none'; btn.innerHTML = '👁️ Mostrar'; } } }
-        function handleQRScan(e) { alert("Escaneo simulado con éxito."); }
-
-        // --- NAVEGACIÓN Y LOBBY SYSTEM ---
-        function openScreen(id) { let scr = document.getElementById(id); if(scr) { scr.style.display = 'flex'; setTimeout(() => scr.style.opacity = '1', 10); } }
-        function closeScreen(id) { let scr = document.getElementById(id); if(scr) { scr.style.opacity = '0'; setTimeout(() => scr.style.display = 'none', 300); } }
-        
-        function goHome() { 
-            document.querySelectorAll('.overlay-screen').forEach(el => closeScreen(el.id)); 
-            let mi = document.getElementById('match-interface'); if(mi) mi.style.display = 'none'; 
-            let ls = document.getElementById('lobby-screen'); if(ls) ls.style.display = 'none';
-            let ds = document.getElementById('dashboard-screen'); if(ds) { ds.style.display = 'flex'; setTimeout(() => ds.style.opacity = '1', 10); } 
-            let bn = document.getElementById('bottom-nav'); if(bn) bn.style.display = 'flex'; 
-            
-            let he = document.getElementById('hud-edit-overlay'); if(he) he.style.display = 'none'; // Seguridad adicional
-            
-            applyProfile(); 
-            gameState = 'menu'; 
-        }
-
-        let lobbyState = { players: 1, isReady: false, guestReady: false, mode: 'pve', type: 'normal' };
-        
-        function openLobby() {
-            let ds = document.getElementById('dashboard-screen'); if(ds) ds.style.opacity = '0';
-            setTimeout(() => {
-                if(ds) ds.style.display = 'none';
-                let ls = document.getElementById('lobby-screen'); if(ls) { ls.style.display = 'flex'; setTimeout(()=>ls.style.opacity='1', 10); }
-            }, 300);
-            if(lobbyState.players === 1) {
-                document.getElementById('lobby-p2-oval').classList.add('empty'); document.getElementById('lobby-p2-av').classList.add('empty'); document.getElementById('lobby-p2-av').classList.remove('guest');
-                setTxt('lobby-p2-name', '---'); setTxt('lobby-p2-status', ''); setTxt('lobby-mode-display', '👤 Normal vs IA');
-                lobbyState.mode = 'pve'; lobbyState.type = 'normal';
-            }
-            updateLobbyUI();
-        }
-
-        function setLobbyMode(mode, type, nameText) { lobbyState.mode = mode; lobbyState.type = type; setTxt('lobby-mode-display', nameText); closeScreen('mode-select-screen'); if (mode === 'pve') { openScreen('diff-select-screen'); } }
-        function startAI(diff) { aiDifficulty = diff; closeScreen('diff-select-screen'); }
-
-        function updateLobbyUI() {
-            let btn = document.getElementById('btn-lobby-action');
-            if (lobbyState.players === 1) { btn.className = 'play-btn-ready start'; btn.innerText = '¡JUGAR!'; setTxt('lobby-p1-status', ''); } 
-            else { if (lobbyState.isReady) { btn.className = 'play-btn-ready cancel'; btn.innerText = 'CANCELAR'; setTxt('lobby-p1-status', 'LISTO'); document.getElementById('lobby-p1-status').style.color = 'var(--success)'; } else { btn.className = 'play-btn-ready ready'; btn.innerText = 'LISTO'; setTxt('lobby-p1-status', 'ESPERANDO'); document.getElementById('lobby-p1-status').style.color = 'var(--gold)'; } }
-        }
-
-        function handleLobbyAction() {
-            let btn = document.getElementById('btn-lobby-action');
-            if (lobbyState.players === 1) { btn.innerText = "CARGANDO..."; setTimeout(() => { executeStartGame(lobbyState.mode, lobbyState.type); }, 500); } 
-            else {
-                lobbyState.isReady = !lobbyState.isReady; updateLobbyUI();
-                if (lobbyState.isReady && !lobbyState.guestReady) { setTimeout(() => { lobbyState.guestReady = true; setTxt('lobby-p2-status', 'LISTO'); document.getElementById('lobby-p2-status').style.color = 'var(--success)'; checkAllReady(); }, 1500); } else { checkAllReady(); }
-            }
-        }
-
-        function checkAllReady() { if (lobbyState.players > 1 && lobbyState.isReady && lobbyState.guestReady) { let btn = document.getElementById('btn-lobby-action'); btn.className = 'play-btn-ready start'; btn.innerText = "INICIANDO..."; setTimeout(() => { executeStartGame(lobbyState.mode, lobbyState.type, lobbyState.guestName); lobbyState.isReady = false; lobbyState.guestReady = false; lobbyState.players = 1; }, 1500); } }
-
-        function executeStartGame(mode, type, oppName = null) {
-            let ls = document.getElementById('lobby-screen'); if(ls) ls.style.display = 'none';
-            let bn = document.getElementById('bottom-nav'); if(bn) bn.style.display = 'none';
-            let mi = document.getElementById('match-interface'); if(mi) mi.style.display = 'flex';
-            setTxt('name2-display', oppName ? oppName : (mode.includes('pvp') || mode.includes('online') ? 'Rival' : 'IA'));
-            gameMode = mode; matchType = type; _initMatch();
-        }
-
-        // --- MOTOR FÍSICO PRO ---
-        const canvas = document.getElementById('gameCanvas'); const ctx = canvas ? canvas.getContext('2d') : null;
-        const wCanv = document.getElementById('weather-overlay'); const wCtx = wCanv ? wCanv.getContext('2d') : null;
-        let FRICTION = 0.93; let BALL_FRICTION = 0.985; const ACCELERATION = 0.25; const MAX_SPEED = 4.5; const KICK_FORCE = 1.5; const RESTITUTION = 0.8;
-        let score = {p1:0, p2:0}, keys = {}, prevKeys = {}, gameMode = 'pvp', gameState = 'menu';
-        let isRaining = false, rainDrops = [], replayBuffer = [], replayIndex = 0, goalParticles = [], footprints = [];
-        let stealCooldown = 0; let aiDifficulty = 5;
-
-        // SISTEMA DE CAOS FUNCIONES
-        function showChaosBanner(key) {
-            let b = document.getElementById('chaos-banner');
-            if(!b) return;
-            b.innerText = chaosNames[key];
-            b.classList.add('show');
-            setTimeout(() => b.classList.remove('show'), 3000);
-        }
-
-        function clearChaosEvent() {
-            chaosActiveEvent = null; mudPuddles = []; portals = []; b.radius = 10; iceMode = false;
-            let cb = document.getElementById('chaos-banner'); if(cb) cb.classList.remove('show');
-        }
-
-        function triggerRandomChaosEvent() {
-            let events = ['wind', 'mud', 'portals', 'giant_ball', 'ice'];
-            chaosActiveEvent = events[Math.floor(Math.random() * events.length)];
-            chaosEventDuration = 60 * 15; // Dura unos 15 segundos
-            chaosTimer = 60 * 5; // Tarda 5 segs en venir el proximo cuando acabe
-            
-            if(chaosActiveEvent === 'wind') {
-                let a = Math.random() * Math.PI * 2;
-                wind.vx = Math.cos(a) * 4; wind.vy = Math.sin(a) * 4;
-            } else if(chaosActiveEvent === 'mud') {
-                mudPuddles = [];
-                for(let i=0; i<4; i++) mudPuddles.push({x: 100+Math.random()*800, y: 50+Math.random()*400, r: 45});
-            } else if(chaosActiveEvent === 'portals') {
-                portals = [{x: 200, y: 100 + Math.random()*300}, {x: 800, y: 100 + Math.random()*300}];
-            } else if(chaosActiveEvent === 'giant_ball') {
-                b.radius = 25; 
-            } else if(chaosActiveEvent === 'ice') {
-                iceMode = true;
-            }
-            showChaosBanner(chaosActiveEvent);
-        }
-
-        function updateChaos() {
-            if(matchType !== 'caos') return;
-            if(chaosTimer > 0) chaosTimer--;
-            if(chaosEventDuration > 0) {
-                chaosEventDuration--;
-                if(chaosEventDuration === 0) clearChaosEvent();
-            }
-            
-            if(chaosTimer === 0 && chaosEventDuration === 0) {
-                triggerRandomChaosEvent();
-            }
-            
-            if(chaosActiveEvent === 'wind') {
-                if(!b.owner && (Math.abs(b.vx)>0.5 || Math.abs(b.vy)>0.5)) { 
-                    b.vx += wind.vx * 0.05; b.vy += wind.vy * 0.05;
-                }
-            }
-            if(chaosActiveEvent === 'portals') {
-                if(portalCooldown > 0) portalCooldown--;
-                if(portalCooldown <= 0 && portals.length === 2 && !b.owner) {
-                    let dA = Math.hypot(b.x - portals[0].x, b.y - portals[0].y);
-                    let dB = Math.hypot(b.x - portals[1].x, b.y - portals[1].y);
-                    if(dA < 30) { b.x = portals[1].x; b.y = portals[1].y; portalCooldown = 60; spawnPart(portals[1].x); }
-                    else if(dB < 30) { b.x = portals[0].x; b.y = portals[0].y; portalCooldown = 60; spawnPart(portals[0].x); }
-                }
-            }
-        }
-
-        function drawChaos() {
-            if(!ctx) return;
-            if(chaosActiveEvent === 'mud') {
-                ctx.fillStyle = "rgba(74, 48, 24, 0.85)";
-                for(let m of mudPuddles) { ctx.beginPath(); ctx.ellipse(m.x, m.y, m.r, m.r*0.7, 0, 0, Math.PI*2); ctx.fill(); }
-            } else if(chaosActiveEvent === 'portals') {
-                let t = Date.now() * 0.005;
-                for(let i=0; i<portals.length; i++) {
-                    let p = portals[i];
-                    ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(t * (i===0?1:-1));
-                    ctx.strokeStyle = i===0 ? "#a855f7" : "#f97316"; ctx.lineWidth = 5;
-                    ctx.beginPath(); ctx.arc(0, 0, 30, 0, Math.PI*1.5); ctx.stroke();
-                    ctx.fillStyle = i===0 ? "rgba(168, 85, 247, 0.3)" : "rgba(249, 115, 22, 0.3)";
-                    ctx.beginPath(); ctx.arc(0, 0, 25, 0, Math.PI*2); ctx.fill();
-                    ctx.restore();
-                }
-            } else if(chaosActiveEvent === 'wind') {
-                ctx.save(); ctx.translate(500, 250); ctx.globalAlpha = 0.2;
-                let ang = Math.atan2(wind.vy, wind.vx); ctx.rotate(ang);
-                ctx.fillStyle = "white";
-                ctx.beginPath(); ctx.moveTo(-50, -20); ctx.lineTo(10, -20); ctx.lineTo(10, -40); ctx.lineTo(60, 0); ctx.lineTo(10, 40); ctx.lineTo(10, 20); ctx.lineTo(-50, 20); ctx.fill();
-                ctx.restore();
-            } else if(chaosActiveEvent === 'ice') {
-                ctx.fillStyle = "rgba(224, 242, 254, 0.25)";
-                ctx.fillRect(0,0,1000,500);
-            }
-        }
-
-
-        function toggleEmoteMenu() { if(gameState === 'hud_edit') return; let m = document.getElementById('emote-menu'); if(m) m.style.display = m.style.display === 'flex' ? 'none' : 'flex'; }
-        function sendEmote(emoji) { p1.emote = emoji; p1.emoteT = 120; let m = document.getElementById('emote-menu'); if(m) m.style.display='none'; }
-
-        // Joystick
-        let joystickData = { active: false, nx: 0, ny: 0, angle: 0, force: 0 };
-        const joyBase = document.getElementById('virtual-joystick'); const joyKnob = document.getElementById('joystick-knob'); let joyBaseRect = null; let lastJoyTap = 0;
-        function handleJoyStart(e) { if(gameState === 'hud_edit') return; if(!joyBase) return; e.preventDefault(); let now = Date.now(); if(now - lastJoyTap < 300 && p1.stamina >= 25 && stealCooldown <= 0) { p1.dashT = 10; p1.stamina -= 25; } lastJoyTap = now; joystickData.active = true; joyBaseRect = joyBase.getBoundingClientRect(); handleJoyMove(e); }
-        function handleJoyMove(e) { if(gameState === 'hud_edit') return; if (!joystickData.active || !joyBaseRect) return; e.preventDefault(); let touch = e.touches ? e.touches[0] : e; let dx = touch.clientX - (joyBaseRect.left + joyBaseRect.width / 2); let dy = touch.clientY - (joyBaseRect.top + joyBaseRect.height / 2); let dist = Math.hypot(dx, dy); let maxD = joyBaseRect.width / 2 - 27; let ang = Math.atan2(dy, dx); if (dist > maxD) { dx = Math.cos(ang) * maxD; dy = Math.sin(ang) * maxD; dist = maxD; } if(joyKnob) joyKnob.style.transform = `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px))`; joystickData.nx = Math.cos(ang); joystickData.ny = Math.sin(ang); joystickData.angle = ang; joystickData.force = dist / maxD; }
-        function handleJoyEnd(e) { if(gameState === 'hud_edit') return; e.preventDefault(); joystickData.active = false; joystickData.nx = 0; joystickData.ny = 0; joystickData.force = 0; if(joyKnob) joyKnob.style.transform = `translate(-50%, -50%)`; }
-        if(joyBase) { joyBase.addEventListener('touchstart', handleJoyStart, {passive: false}); joyBase.addEventListener('touchmove', handleJoyMove, {passive: false}); joyBase.addEventListener('touchend', handleJoyEnd, {passive: false}); joyBase.addEventListener('touchcancel', handleJoyEnd, {passive: false}); }
-        function bindAimTouch(id, key) { 
-            let el = document.getElementById(id); if(!el) return; let rect = null, isDrag = false; 
-            el.addEventListener('touchstart', e => { if(gameState === 'hud_edit') return; e.preventDefault(); keys[key] = true; rect = el.getBoundingClientRect(); isDrag = false; }, {passive: false}); 
-            el.addEventListener('touchmove', e => { if(gameState === 'hud_edit') return; if(!keys[key]) return; e.preventDefault(); let touch = e.touches ? e.touches[0] : e; let dx = touch.clientX - (rect.left + rect.width/2), dy = touch.clientY - (rect.top + rect.height/2); if(Math.hypot(dx,dy) > 10) { p1.aimAngle = Math.atan2(dy,dx); isDrag = true; } }, {passive: false}); 
-            const endFn = e => { if(gameState === 'hud_edit') return; e.preventDefault(); keys[key] = false; if(!isDrag) p1.aimAngle = p1.a; }; 
-            el.addEventListener('touchend', endFn, {passive: false}); el.addEventListener('touchcancel', endFn, {passive: false}); 
-        }
-        bindAimTouch('btn-kick', 'shift'); bindAimTouch('btn-pass', 'space'); bindAimTouch('btn-sprint', 'Alt');
-
-        function updateGameStyles() { if(canvas && currentUser && FULL_CATALOG.stadium) { let stad = FULL_CATALOG.stadium[currentUser.equipped.stadium]; if(stad) canvas.style.backgroundColor = stad.c1; } }
-
-        class PlayerEntity {
-            constructor(x, y, r) { this.x=x; this.y=y; this.vx=0; this.vy=0; this.radius=r; this.a=0; this.aimAngle=0; this.stamina=100; this.dashT=0; this.emote=''; this.emoteT=0; }
-            drawP(col, skin) { 
-                if(!ctx) return; 
-                ctx.save(); ctx.translate(this.x,this.y); ctx.rotate(this.a); 
-                ctx.beginPath(); ctx.ellipse(0,0,this.radius,this.radius*0.75,0,0,Math.PI*2); ctx.fillStyle=col; ctx.fill(); ctx.lineWidth=2; ctx.strokeStyle="rgba(0,0,0,0.6)"; ctx.stroke(); 
-                ctx.beginPath(); ctx.arc(this.radius*0.2,0,this.radius*0.55,0,Math.PI*2); ctx.fillStyle=skin; ctx.fill(); ctx.stroke(); 
-                ctx.beginPath(); ctx.arc(this.radius*0.2,0,this.radius*0.55,-Math.PI/2,Math.PI/2,true); ctx.fillStyle="rgba(0,0,0,0.8)"; ctx.fill(); 
-                ctx.restore(); 
-                ctx.fillStyle = "rgba(0,0,0,0.5)"; ctx.fillRect(this.x - 15, this.y - this.radius - 12, 30, 4);
-                ctx.fillStyle = this.stamina > 30 ? "#22c55e" : "#ef4444"; ctx.fillRect(this.x - 15, this.y - this.radius - 12, 30 * (this.stamina/100), 4);
-            }
-        }
-        class BallEntity {
-            constructor(x, y, r) { this.x=x; this.y=y; this.vx=0; this.vy=0; this.radius=r; this.a=0; this.owner=null; }
-            drawB() { 
-                if(!ctx || !currentUser || !FULL_CATALOG.ball) return; let spd=Math.sqrt(this.vx*this.vx+this.vy*this.vy); this.a+=spd*0.05*Math.sign(this.vx||1); 
-                let cfg = FULL_CATALOG.ball[currentUser.equipped.ball]; if(!cfg) return;
-                ctx.save(); ctx.translate(this.x,this.y); ctx.rotate(this.a); if(cfg.g){ctx.shadowBlur=15; ctx.shadowColor=cfg.g;} 
-                ctx.beginPath(); ctx.arc(0,0,this.radius,0,Math.PI*2); ctx.fillStyle=cfg.bg; ctx.fill(); ctx.shadowBlur=0; 
-                ctx.fillStyle=cfg.pat; for(let i=0;i<3;i++){let an=i*((Math.PI*2)/3); ctx.beginPath(); ctx.arc(Math.cos(an)*this.radius*0.4,Math.sin(an)*this.radius*0.4,this.radius*0.35,0,Math.PI*2); ctx.fill();} 
-                ctx.lineWidth=1.5; ctx.strokeStyle="rgba(0,0,0,0.8)"; ctx.stroke(); ctx.restore(); 
-            }
-        }
-        const b = new BallEntity(500,250,10); const p1 = new PlayerEntity(250,250,20); const p2 = new PlayerEntity(750,250,20); 
-        const p3 = new PlayerEntity(250,100,20); const p4 = new PlayerEntity(750,100,20); 
-
-        function _initMatch() { 
-            if(gameState === 'hud_edit') return;
-            score={p1:0,p2:0}; setTxt('score1', 0); setTxt('score2', 0); currentHalf=1; currentTime=90; updateGameStyles(); resetPositions(); 
-            matchStats = {p1Pos:0, p2Pos:0, p1Sho:0, p2Sho:0, p1Stl:0, p2Stl:0};
-            
-            clearChaosEvent();
-            if(matchType === 'caos') chaosTimer = 60 * 5; 
-
-            isRaining=Math.random()<0.3; FRICTION=isRaining?0.96:0.93; BALL_FRICTION=isRaining?0.99:0.985; rainDrops=[]; footprints=[];
-            if(isRaining) for(let i=0;i<100;i++) rainDrops.push({x:Math.random()*1000,y:Math.random()*500,l:Math.random()*2+1,v:Math.random()*5+5}); 
-            gameState='playing'; startTimer(); 
-        }
-        function resetPositions() { 
-            b.x=500; b.y=250; b.vx=0; b.vy=0; b.owner=null; 
-            p1.x=250; p1.y=250; p1.vx=0; p1.vy=0; p1.a=0; p1.aimAngle=0; p1.stamina=100; p1.emoteT=0;
-            p2.x=750; p2.y=250; p2.vx=0; p2.vy=0; p2.a=Math.PI; p2.aimAngle=Math.PI; p2.stamina=100; p2.emoteT=0;
-            if(gameMode.includes('2v2')){ p3.x=250; p3.y=100; p3.vx=0; p3.vy=0; p4.x=750; p4.y=100; p4.vx=0; p4.vy=0; p4.a=Math.PI;}
-            stealCooldown=0; for(let k in keys) keys[k]=false; prevKeys={}; 
-        }
-        
-        function updatePossession() {
-            if(stealCooldown > 0) stealCooldown--;
-            let players = gameMode.includes('2v2') ? [p1,p2,p3,p4] : [p1,p2];
-            
-            if(!b.owner && stealCooldown <= 0) {
-                let closest = null; let minDist = 999;
-                players.forEach(p => { let d = Math.hypot(b.x - p.x, b.y - p.y); if(d < p.radius + b.radius + 5 && d < minDist) { minDist = d; closest = p; } });
-                if(closest) b.owner = closest;
-            }
-            if(b.owner) {
-                if(b.owner === p1) matchStats.p1Pos++; else if(b.owner === p2) matchStats.p2Pos++;
-                players.forEach(p => {
-                    if(p !== b.owner && stealCooldown <= 0) {
-                        let d = Math.hypot(p.x - b.owner.x, p.y - b.owner.y);
-                        if(d < p.radius + b.owner.radius) { 
-                            if(b.owner===p1 && p===p2) matchStats.p2Stl++;
-                            if(b.owner===p2 && p===p1) matchStats.p1Stl++;
-                            b.owner = p; stealCooldown = 30; 
-                        }
-                    }
-                });
-                b.x = b.owner.x + Math.cos(b.owner.a) * (20 + (b.radius - 10)); b.y = b.owner.y + Math.sin(b.owner.a) * (20 + (b.radius - 10)); b.vx = b.owner.vx; b.vy = b.owner.vy; 
-            }
-        }
-
-        function shootBall(p, angle, power) { 
-            if(p===p1 && Math.cos(angle)>0) matchStats.p1Sho++; 
-            if(p===p2 && Math.cos(angle)<0) matchStats.p2Sho++;
-            let massFactor = chaosActiveEvent === 'giant_ball' ? 0.6 : 1;
-            b.x = p.x + Math.cos(angle) * (25 + (b.radius - 10)); b.y = p.y + Math.sin(angle) * (25 + (b.radius - 10)); b.vx = Math.cos(angle) * (power * massFactor); b.vy = Math.sin(angle) * (power * massFactor); b.owner = null; stealCooldown = 15; 
-        }
-
-        let goalScorer = '';
-        function chkWall(e) { 
-            let isG=false, gT=180, gB=320; let isBall = (e === b);
-            if(e.x-e.radius<0) { if(isBall && e.y>gT && e.y<gB) { score.p2++; isG=true; spawnPart(10); goalScorer='p2'; } else if(!isBall || !b.owner) { e.x=e.radius; e.vx*=-RESTITUTION; } } 
-            if(e.x+e.radius>1000) { if(isBall && e.y>gT && e.y<gB) { score.p1++; currentUser.coins+=10; isG=true; spawnPart(990); goalScorer='p1'; addStat('goals',1); addXP(20); } else if(!isBall || !b.owner) { e.x=1000-e.radius; e.vx*=-RESTITUTION; } } 
-            if(e.y-e.radius<0) { if(!isBall || !b.owner) { e.y=e.radius; e.vy*=-RESTITUTION; } } 
-            if(e.y+e.radius>500) { if(!isBall || !b.owner) { e.y=500-e.radius; e.vy*=-RESTITUTION; } } 
-            if(isG && gameState==='playing') { gameState='replay_trans'; setTxt('score1', score.p1); setTxt('score2', score.p2); setTimeout(()=>{ gameState='replay'; replayIndex=0; let rb = document.getElementById('replay-badge'); if(rb) rb.style.display='block'; }, 500); } 
-        }
-
-        function drawPitch() { 
-            if(!ctx) return; let stad = FULL_CATALOG.stadium[currentUser.equipped.stadium]; if(!stad) return; let lCol=stad.l; ctx.clearRect(0,0,1000,500); 
-            let strW=100; for(let i=0;i<1000;i+=strW){ctx.fillStyle=(i/strW)%2===0?stad.c1:stad.c2; ctx.fillRect(i,0,strW,500);} 
-            ctx.fillStyle = "#000000"; for(let i=footprints.length-1; i>=0; i--) { let f = footprints[i]; f.a -= 0.01; if(f.a <= 0) { footprints.splice(i, 1); continue; } ctx.globalAlpha = f.a; ctx.beginPath(); ctx.arc(f.x, f.y, 5, 0, Math.PI*2); ctx.fill(); } ctx.globalAlpha = 1.0;
-            ctx.strokeStyle=lCol; ctx.lineWidth=3; ctx.strokeRect(0,0,1000,500); ctx.beginPath(); ctx.moveTo(500,0); ctx.lineTo(500,500); ctx.stroke(); ctx.beginPath(); ctx.arc(500,250,60,0,Math.PI*2); ctx.stroke(); ctx.beginPath(); ctx.arc(500,250,4,0,Math.PI*2); ctx.fillStyle=lCol; ctx.fill(); 
-            ctx.strokeRect(0,120,120,260); ctx.strokeRect(0,180,40,140); ctx.beginPath(); ctx.arc(90,250,3,0,Math.PI*2); ctx.fill(); ctx.beginPath(); ctx.arc(90,250,60,-Math.PI/3.5,Math.PI/3.5); ctx.stroke(); 
-            ctx.strokeRect(880,120,120,260); ctx.strokeRect(960,180,40,140); ctx.beginPath(); ctx.arc(910,250,3,0,Math.PI*2); ctx.fill(); ctx.beginPath(); ctx.arc(910,250,60,Math.PI-Math.PI/3.5,Math.PI+Math.PI/3.5); ctx.stroke(); 
-            ctx.fillStyle="rgba(0,0,0,0.3)"; ctx.fillRect(0,200,15,100); ctx.fillRect(985,200,15,100); 
-        }
-        function drawAimArrow() { if(b.owner === p1 && (keys['shift'] || keys['space'])) { ctx.beginPath(); ctx.moveTo(p1.x, p1.y); ctx.lineTo(p1.x + Math.cos(p1.aimAngle)*60, p1.y + Math.sin(p1.aimAngle)*60); ctx.strokeStyle = keys['shift'] ? "rgba(255, 60, 60, 0.8)" : "rgba(60, 150, 255, 0.8)"; ctx.lineWidth = 4; ctx.stroke(); ctx.beginPath(); ctx.arc(p1.x + Math.cos(p1.aimAngle)*60, p1.y + Math.sin(p1.aimAngle)*60, 5, 0, Math.PI*2); ctx.fillStyle = keys['shift'] ? "rgba(255, 60, 60, 1)" : "rgba(60, 150, 255, 1)"; ctx.fill(); } }
-        function drawWeather() { if(!wCtx) return; wCtx.clearRect(0,0,1000,500); if(!isRaining) return; wCtx.strokeStyle="rgba(255,255,255,0.3)"; wCtx.lineWidth=1; wCtx.beginPath(); rainDrops.forEach(r=>{ r.y+=r.v; r.x+=1; if(r.y>500){r.y=-10; r.x=Math.random()*1000;} wCtx.moveTo(r.x,r.y); wCtx.lineTo(r.x+1,r.y+r.v*r.l); }); wCtx.stroke(); }
-        function spawnPart(x) { let effId = currentUser.equipped.effect; if(effId==='ninguno') return; for(let i=0;i<50;i++){ let col = `hsl(${Math.random()*360},100%,50%)`; if(effId==='fuego') col = Math.random()>0.5?'#ef4444':'#f97316'; else if(effId==='rayos') col = Math.random()>0.5?'#e0f2fe':'#38bdf8'; else if(effId==='burbu') col = 'rgba(255,255,255,0.7)'; else if(effId==='coraz') col = '#f472b6'; else if(effId==='estrell') col = '#facc15'; else if(effId==='humo') col = 'rgba(148,163,184,0.6)'; else if(effId==='oro_ef') col = '#fef08a'; else if(effId==='pixel') col = Math.random()>0.5?'#22c55e':'#16a34a'; goalParticles.push({x:x, y:250+(Math.random()*80-40), vx:(Math.random()-0.5)*10, vy:(Math.random()-0.5)*10, life:1, c:col}); } }
-        function drawPart() { if(!ctx) return; for(let i=goalParticles.length-1; i>=0; i--){ let p=goalParticles[i]; p.x+=p.vx; p.y+=p.vy; p.life-=0.02; if(p.life<=0){goalParticles.splice(i,1);continue;} ctx.globalAlpha=p.life; ctx.fillStyle=p.c; ctx.beginPath(); ctx.arc(p.x,p.y,4,0,Math.PI*2); ctx.fill(); ctx.globalAlpha=1; } }
-        function recFrame() { if(replayBuffer.length>150) replayBuffer.shift(); let frame = {bx:b.x, by:b.y, p1x:p1.x, p1y:p1.y, p1a:p1.a, p2x:p2.x, p2y:p2.y, p2a:p2.a}; if(gameMode.includes('2v2')){ frame.p3x=p3.x; frame.p3y=p3.y; frame.p3a=p3.a; frame.p4x=p4.x; frame.p4y=p4.y; frame.p4a=p4.a; } replayBuffer.push(frame); }
-        function drawFrame(f) { 
-            let sk = FULL_CATALOG.skin[currentUser.equipped.skin]; if(!sk) return;
-            b.x=f.bx; b.y=f.by; p1.x=f.p1x; p1.y=f.p1y; p1.a=f.p1a; p2.x=f.p2x; p2.y=f.p2y; p2.a=f.p2a; 
-            if(f.p3x) {p3.x=f.p3x; p3.y=f.p3y; p3.a=f.p3a; p4.x=f.p4x; p4.y=f.p4y; p4.a=f.p4a;}
-            drawPitch(); drawChaos(); b.drawB(); p1.drawP(sk.c, sk.s); p2.drawP('#3b82f6', '#d2dae2'); 
-            if(gameMode.includes('2v2')){ p3.drawP('#10b981', '#fcd34d'); p4.drawP('#8b5cf6', '#cbd5e1'); }
-        }
-
-        function drawRadar() {
-            if(!ctx) return; let rw = 200, rh = 100, rx = 400, ry = 10;
-            ctx.fillStyle = "rgba(0,0,0,0.5)"; ctx.fillRect(rx, ry, rw, rh);
-            ctx.strokeStyle = "rgba(255,255,255,0.5)"; ctx.lineWidth = 2; ctx.strokeRect(rx, ry, rw, rh);
-            ctx.beginPath(); ctx.moveTo(rx+rw/2, ry); ctx.lineTo(rx+rw/2, ry+rh); ctx.stroke();
-            ctx.beginPath(); ctx.arc(rx+rw/2, ry+rh/2, 15, 0, Math.PI*2); ctx.stroke();
-            let drawD = (x,y,c,s) => { ctx.fillStyle=c; ctx.beginPath(); ctx.arc(rx+(x*0.2), ry+(y*0.2), s, 0, Math.PI*2); ctx.fill(); };
-            drawD(p1.x, p1.y, 'red', 3); drawD(p2.x, p2.y, '#3b82f6', 3);
-            if(gameMode.includes('2v2')){ drawD(p3.x, p3.y, '#10b981', 3); drawD(p4.x, p4.y, '#8b5cf6', 3); }
-            drawD(b.x, b.y, 'yellow', 2.5);
-        }
-
-        function drawEmotes() {
-            if(!ctx) return;
-            [p1,p2].forEach(p => {
-                if(p.emoteT > 0) {
-                    ctx.fillStyle = "rgba(255,255,255,0.9)"; ctx.beginPath(); ctx.arc(p.x+25, p.y-35, 15, 0, Math.PI*2); ctx.fill();
-                    ctx.fillStyle = "black"; ctx.font = "18px Arial"; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText(p.emote, p.x+25, p.y-35);
-                    p.emoteT--;
-                }
-            });
-        }
-
-        function handleInput() {
-            if(gameState !== 'playing') return;
-            if(keys['space'] && b.owner !== p1) { p1.vx *= 0.8; p1.vy *= 0.8; }
-            let isSprint = keys['Alt'] && b.owner !== p1 && p1.stamina > 0;
-            let acc = isSprint ? ACCELERATION * 2 : ACCELERATION; let maxS = isSprint ? MAX_SPEED * 1.5 : MAX_SPEED;
-            if(isSprint) p1.stamina -= 1.0; else if(p1.stamina < 100) p1.stamina += 0.5;
-
-            if (joystickData.active) {
-                p1.a = joystickData.angle; if(!keys['shift'] && !keys['space']) p1.aimAngle = p1.a;
-                p1.vx += joystickData.nx * (acc * joystickData.force); p1.vy += joystickData.ny * (acc * joystickData.force);
-                let cSpeed = Math.hypot(p1.vx, p1.vy); if(cSpeed > maxS) { p1.vx = (p1.vx / cSpeed) * maxS; p1.vy = (p1.vy / cSpeed) * maxS; }
-            } else {
-                let iX = 0, iY = 0; if(keys['w']) iY -= 1; if(keys['s']) iY += 1; if(keys['a']) iX -= 1; if(keys['d']) iX += 1;
-                if(iX !== 0 || iY !== 0) { p1.a = Math.atan2(iY, iX); if(!keys['shift'] && !keys['space']) p1.aimAngle = p1.a; }
-                if(keys['w'] && p1.vy > -maxS) p1.vy -= acc; if(keys['s'] && p1.vy < maxS) p1.vy += acc; if(keys['a'] && p1.vx > -maxS) p1.vx -= acc; if(keys['d'] && p1.vx < maxS) p1.vx += acc;
-            }
-
-            if (p1.dashT > 0) { p1.dashT--; p1.vx += Math.cos(p1.a) * 3; p1.vy += Math.sin(p1.a) * 3; }
-            if (Math.hypot(p1.vx, p1.vy) > 2 && Math.random() < 0.3) footprints.push({x: p1.x, y: p1.y, a: isRaining ? 0.3 : 0.1});
-            if (Math.hypot(p2.vx, p2.vy) > 2 && Math.random() < 0.3) footprints.push({x: p2.x, y: p2.y, a: isRaining ? 0.3 : 0.1});
-
-            if (!keys['shift'] && prevKeys['shift'] && b.owner === p1) shootBall(p1, p1.aimAngle, 18);
-            if (!keys['space'] && prevKeys['space'] && b.owner === p1) shootBall(p1, p1.aimAngle, 9);
-            
-            if(gameMode === 'pvp') { 
-                let iX2 = 0, iY2 = 0; if(keys['ArrowUp']) iY2 -= 1; if(keys['ArrowDown']) iY2 += 1; if(keys['ArrowLeft']) iX2 -= 1; if(keys['ArrowRight']) iX2 += 1;
-                if(iX2 !== 0 || iY2 !== 0) { p2.aimAngle = Math.atan2(iY2, iX2); p2.a = p2.aimAngle; }
-                if(keys['ArrowUp'] && p2.vy > -MAX_SPEED) p2.vy -= ACCELERATION; if(keys['ArrowDown'] && p2.vy < MAX_SPEED) p2.vy += ACCELERATION; if(keys['ArrowLeft'] && p2.vx > -MAX_SPEED) p2.vx -= ACCELERATION; if(keys['ArrowRight'] && p2.vx < MAX_SPEED) p2.vx += ACCELERATION; 
-                if(!keys['Enter'] && prevKeys['Enter'] && b.owner === p2) shootBall(p2, p2.aimAngle, 18); if(!keys['ShiftRight'] && prevKeys['ShiftRight'] && b.owner === p2) shootBall(p2, p2.aimAngle, 9);
-            }
-        }
-
-        function runAI(aiP, isDefense) {
-            let aiAcc = ACCELERATION * (0.3 + aiDifficulty * 0.1); let aiMaxS = MAX_SPEED * (0.4 + aiDifficulty * 0.08);
-            if(b.owner === aiP) {
-                let targetY = 250, targetX = isDefense ? 0 : 1000;
-                let dy = targetY - aiP.y, dx = targetX - aiP.x; aiP.aimAngle = Math.atan2(dy, dx); aiP.a = aiP.aimAngle;
-                if(isDefense && aiP.vx > -aiMaxS) aiP.vx -= aiAcc; else if(!isDefense && aiP.vx < aiMaxS) aiP.vx += aiAcc;
-                if(dy < 0 && aiP.vy > -aiMaxS) aiP.vy -= aiAcc; if(dy > 0 && aiP.vy < aiMaxS) aiP.vy += aiAcc;
-                if((isDefense && aiP.x < 350) || (!isDefense && aiP.x > 650) || Math.random() < (0.01 * aiDifficulty)) shootBall(aiP, aiP.aimAngle, 10 + aiDifficulty);
-            } else {
-                let tX = b.x, tY = b.y;
-                if(aiP.x < tX && aiP.vx < aiMaxS) aiP.vx += aiAcc; if(aiP.x > tX && aiP.vx > -aiMaxS) aiP.vx -= aiAcc; 
-                if(aiP.y < tY && aiP.vy < aiMaxS) aiP.vy += aiAcc; if(aiP.y > tY && aiP.vy > -aiMaxS) aiP.vy -= aiAcc;
-                aiP.a = Math.atan2(tY - aiP.y, tX - aiP.x);
-            }
-            if(Math.random() < 0.002) { aiP.emote = ['😡','😱'][Math.floor(Math.random()*2)]; aiP.emoteT = 100; }
-        }
-
-        function handleAI() {
-            if(!gameMode.includes('pve') && !gameMode.includes('online')) return;
-            if (gameMode === 'pve' || gameMode === 'online') { runAI(p2, true); }
-            else if(gameMode === 'online2v2') { runAI(p2, true); runAI(p3, false); runAI(p4, true); } 
-        }
-
-        function triggerGoalAnimation() {
-            let gs = document.getElementById('goal-screen'); 
-            if(gs) {
-                gs.classList.add('show');
-                if(matchType === 'golden' || matchType === 'caos') {
-                    if(goalScorer === 'p1') { gs.innerText = sysLang === 'en' ? "YOU WIN!" : sysLang === 'pt' ? "VOCÊ VENCEU!" : "¡GANASTE!"; gs.style.color = "var(--success)"; } 
-                    else { gs.innerText = sysLang === 'en' ? "YOU LOSE!" : sysLang === 'pt' ? "VOCÊ PERDEU!" : "¡PERDISTE!"; gs.style.color = "var(--danger)"; }
-                } else { gs.innerText = "⚽"; gs.style.color = "white"; }
-            }
-            setTimeout(()=>{ 
-                if(gs) gs.classList.remove('show'); goalParticles=[]; resetPositions(); 
-                if(matchType === 'golden' || matchType === 'caos') { handleHalfTime(true); } else { setTimeout(()=>{if(currentTime>0)gameState='playing';},200); }
-            }, 2000);
-        }
-
-        function gameLoop() { 
-            if(gameState!=='menu') { 
-                let sk = FULL_CATALOG.skin[currentUser.equipped.skin];
-                if(gameState==='playing') {
-                    handleInput(); handleAI();
-                    updateChaos();
-                    let pFric = iceMode ? 0.99 : FRICTION; 
-
-                    let players = gameMode.includes('2v2') ? [p1,p2,p3,p4] : [p1,p2];
-                    players.forEach(p=>{
-                        p.x+=p.vx; p.y+=p.vy; p.vx*=pFric; p.vy*=pFric; 
-                        if(chaosActiveEvent === 'mud') {
-                            for(let m of mudPuddles) { if(Math.hypot(p.x - m.x, p.y - m.y) < m.r) { p.vx *= 0.8; p.vy *= 0.8; break; } }
-                        }
-                        chkWall(p);
-                    }); 
-                    updatePossession(); 
-                    if(!b.owner) { b.x+=b.vx; b.y+=b.vy; b.vx*=BALL_FRICTION; b.vy*=BALL_FRICTION; } 
-                    chkWall(b);
-                    
-                    recFrame(); drawPitch(); drawChaos(); b.drawB(); 
-                    if(sk) p1.drawP(sk.c, sk.s); p2.drawP('#3b82f6', '#d2dae2'); 
-                    if(gameMode.includes('2v2')){ p3.drawP('#10b981', '#fcd34d'); p4.drawP('#8b5cf6', '#cbd5e1'); }
-                    drawAimArrow(); drawRadar(); drawEmotes(); drawWeather();
-                } else if(gameState==='replay_trans') { 
-                    drawPitch(); drawChaos(); b.drawB(); if(sk) p1.drawP(sk.c, sk.s); p2.drawP('#3b82f6', '#d2dae2'); 
-                    if(gameMode.includes('2v2')){ p3.drawP('#10b981', '#fcd34d'); p4.drawP('#8b5cf6', '#cbd5e1'); } drawPart(); drawRadar(); drawEmotes(); drawWeather();
-                } else if(gameState==='replay') { 
-                    if(replayIndex<replayBuffer.length) { drawFrame(replayBuffer[Math.floor(replayIndex)]); drawWeather(); replayIndex+=0.5; } else { let rb = document.getElementById('replay-badge'); if(rb) rb.style.display='none'; gameState='goal'; triggerGoalAnimation(); }
-                } else if(gameState==='goal'||gameState==='paused') { 
-                    drawPitch(); drawChaos(); b.drawB(); if(sk) p1.drawP(sk.c, sk.s); p2.drawP('#3b82f6', '#d2dae2'); 
-                    if(gameMode.includes('2v2')){ p3.drawP('#10b981', '#fcd34d'); p4.drawP('#8b5cf6', '#cbd5e1'); } drawPart(); drawRadar(); drawEmotes(); drawWeather(); 
-                } else if(gameState==='hud_edit') {
-                    drawPitch(); b.drawB(); if(sk) p1.drawP(sk.c, sk.s); p2.drawP('#3b82f6', '#d2dae2'); 
-                }
-            } 
-            prevKeys = {...keys}; requestAnimationFrame(gameLoop); 
-        }
-
-        let currTime=90, currentHalf=1, tInt;
-        function updateTimerUI() { 
-            if(matchType === 'golden' || matchType === 'caos') { setTxt('timer', '∞'); setTxt('half-indicator', sysLang==='en'?"GOLDEN GOAL":sysLang==='pt'?"GOL DE OURO":"GOL DE ORO"); } 
-            else { let min = Math.floor(currTime/60); let sec = currTime%60; setTxt('timer', `${min<10?'0':''}${min}:${sec<10?'0':''}${sec}`); setTxt('half-indicator', currentHalf===1?(sysLang==='en'?"1st HALF":sysLang==='pt'?"1º TEMPO":"1er TIEMPO"):(sysLang==='en'?"2nd HALF":sysLang==='pt'?"2º TEMPO":"2do TIEMPO")); }
-        }
-        function startTimer() { clearInterval(tInt); updateTimerUI(); tInt=setInterval(()=>{ if(gameState==='playing' && matchType !== 'golden' && matchType !== 'caos'){currTime--; updateTimerUI(); if(currTime<=0) handleHalfTime();} }, 1000); }
-        function togglePause() { if(gameState==='playing'){gameState='paused'; clearInterval(tInt); openScreen('pause-screen');} else if(gameState==='paused'){closeScreen('pause-screen'); gameState='playing'; startTimer();} }
-        function abandonMatch() { closeScreen('pause-screen'); goHome(); resetPositions(); }
-        function handleHalfTime(isGoldenEnd = false) { 
-            gameState='paused'; clearInterval(tInt); let ms = document.getElementById('match-stats'); 
-            
-            let tPos = matchStats.p1Pos + matchStats.p2Pos || 1; let pct1 = Math.round((matchStats.p1Pos/tPos)*100); let pct2 = 100 - pct1;
-            let oppName = document.getElementById('name2-display').innerText;
-
-            if(ms) { 
-                ms.innerHTML=`
-                <table style="width:100%; color:white; font-size:1rem; margin-top:10px; border-collapse:collapse;">
-                    <tr><th style="width:33%; color:var(--danger)">${currentUser.name}</th><th style="width:33%; color:var(--gold)">STATS</th><th style="width:33%; color:var(--primary)">${oppName}</th></tr>
-                    <tr><td style="text-align:center; font-size:1.3rem;"><b>${score.p1}</b></td><td style="text-align:center; font-size:0.8rem;">GOLES</td><td style="text-align:center; font-size:1.3rem;"><b>${score.p2}</b></td></tr>
-                    <tr style="background:rgba(255,255,255,0.1);"><td style="text-align:center">${pct1}%</td><td style="text-align:center; font-size:0.8rem;">POSESIÓN</td><td style="text-align:center">${pct2}%</td></tr>
-                    <tr><td style="text-align:center">${matchStats.p1Sho}</td><td style="text-align:center; font-size:0.8rem;">TIROS</td><td style="text-align:center">${matchStats.p2Sho}</td></tr>
-                    <tr style="background:rgba(255,255,255,0.1);"><td style="text-align:center">${matchStats.p1Stl}</td><td style="text-align:center; font-size:0.8rem;">ROBOS</td><td style="text-align:center">${matchStats.p2Stl}</td></tr>
-                </table>`; 
-            } 
-            
-            if(currentHalf===1 && !isGoldenEnd){setTxt('match-overlay-title', sysLang==='en'?"End 1st Half":sysLang==='pt'?"Fim 1º Tempo":"Fin 1er Tiempo"); openScreen('match-overlay');} 
-            else { 
-                let tStr = (matchType === 'golden' || matchType === 'caos') ? (sysLang==='en'?"GOLDEN GOAL":sysLang==='pt'?"GOL DE OURO":"¡GOL DE ORO!") : (sysLang==='en'?"Match Ended":sysLang==='pt'?"Fim de Jogo":"Fin del Partido");
-                setTxt('match-overlay-title', tStr); addStat('play',1); addXP(50); 
-                if(score.p1>score.p2 || ((matchType==='golden'||matchType==='caos') && goalScorer==='p1')){currentUser.coins+=50; currentUser.stars+=1; if(ms) ms.innerHTML+=`<br><div style="color:var(--gold); font-weight:bold; text-align:center; margin-top:10px;">Victoria! +50 🪙 | +1 ⭐</div>`; addStat('wins',1); addXP(100);} 
-                saveAccounts(); openScreen('match-overlay'); 
-            } 
-        }
-        function continueMatch() { closeScreen('match-overlay'); if(currentHalf===1 && matchType !== 'golden' && matchType !== 'caos'){currentHalf=2;currTime=90;resetPositions();gameState='playing';startTimer();} else {goHome();} }
-
-        window.addEventListener('keydown', e=>{ keys[e.key]=true; if((e.key==='Escape'||e.key.toLowerCase()==='p')&&(gameState==='playing'||gameState==='paused'))togglePause(); }); window.addEventListener('keyup', e=>{ keys[e.key]=false; });
-
-        // INICIO - APLICAR TODO
-        loadAccount(activeUserEmail); 
-        applyTheme(sysTheme); applyLanguage(sysLang); 
-        
-        // CHECK INICIAL LOGIN
-        setTimeout(checkInitialLogin, 500);
-
-        requestAnimationFrame(gameLoop);
-    </script>
 </body>
 </html>
