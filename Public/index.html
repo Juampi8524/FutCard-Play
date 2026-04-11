@@ -1,459 +1,458 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>FutCard Play - Edición Definitiva</title>
-    
-    <link rel="stylesheet" href="estilos.css">
-    
-    <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>FutCard Play - Edición Definitiva</title>
+    
+    <link rel="stylesheet" href="estilos.css">
+    
+    <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore-compat.js"></script>
-    <script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-auth-compat.js"></script> <script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
 </head>
 <body class="dark-theme">
 
-    <div id="landscape-warning">
-        <div class="rotate-icon">📱</div>
-        <h2 style="margin:0 0 10px 0;" data-i18n="rotate_title">Gira tu dispositivo</h2>
-        <p style="color:var(--text-muted); max-width:80%;" data-i18n="rotate_desc">FutCard Play está diseñado para jugarse en modo horizontal.</p>
-        <button onclick="requestFullscreenAndLock()" style="margin-top:20px; background:var(--primary); color:white; border:none; padding:10px 20px; border-radius:8px; font-weight:bold; cursor:pointer;" data-i18n="btn_fullscreen">Forzar Pantalla</button>
-    </div>
-
-    <div id="login-screen" class="overlay-screen" style="display: none; opacity: 0; z-index: 999; background: var(--bg-app);">
-        <div class="modal-panel" style="background: var(--panel-bg); color: var(--text-color); max-width: 350px;">
-            <div style="text-align: center; font-size: 3rem; margin-bottom: -10px;">⚽</div>
-            <h2 id="auth-title" style="margin: 0; color: var(--gold);">Iniciar Sesión</h2>
-            <p id="auth-desc" style="font-size:0.8rem; color:var(--text-muted); text-align:center;">Guarda tu progreso y juega con amigos online</p>
+    <div id="login-screen" class="overlay-screen" style="display: none; opacity: 0; justify-content: center; align-items: center; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 17, 21, 0.95); z-index: 999;">
+        <div class="modal-panel" style="background: #1c1e24; border-radius: 16px; padding: 40px 30px; width: 100%; max-width: 350px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); display: flex; flex-direction: column; align-items: center; gap: 20px;">
             
-            <input type="email" id="login-email" placeholder="Correo electrónico" style="background:var(--input-bg); color:var(--text-color); border: 1px solid var(--border-color);">
-            <input type="password" id="login-pass" placeholder="Contraseña" style="background:var(--input-bg); color:var(--text-color); border: 1px solid var(--border-color);">
-            <input type="password" id="login-pass-confirm" placeholder="Confirmar Contraseña" style="background:var(--input-bg); color:var(--text-color); border: 1px solid var(--border-color); display:none;">
+            <div style="text-align: center; font-size: 3.5rem; line-height: 1;">⚽</div>
             
-            <div style="display: flex; gap: 10px; width: 100%; margin-top: 10px;">
-                <button class="main-btn" id="btn-auth-action" style="background: var(--primary); padding: 10px; width: 100%;" onclick="processAuth()">Entrar</button>
+            <div style="text-align: center;">
+                <h2 id="auth-title" style="margin: 0; color: #facc15; font-size: 1.6rem; font-weight: bold;">Iniciar Sesión</h2>
+                <p id="auth-desc" style="font-size: 0.85rem; color: #8892b0; margin-top: 8px;">Guarda tu progreso y juega con amigos online</p>
             </div>
             
-            <button class="btn-google" onclick="simulateGoogleLogin()" style="background:white; color:#333; padding:12px; border-radius:10px; border:none; width:100%; font-weight:bold; cursor:pointer; display:flex; justify-content:center; align-items:center; gap:10px; margin-top:10px;">
+            <div style="width: 100%; display: flex; flex-direction: column; gap: 15px; margin-top: 10px;">
+                <input type="email" id="login-email" placeholder="Correo electrónico" style="width: 100%; background: #13141a; color: white; border: 1px solid #2a2d3a; padding: 14px; border-radius: 8px; font-size: 0.95rem; box-sizing: border-box; outline: none;">
+                <input type="password" id="login-pass" placeholder="Contraseña" style="width: 100%; background: #13141a; color: white; border: 1px solid #2a2d3a; padding: 14px; border-radius: 8px; font-size: 0.95rem; box-sizing: border-box; outline: none;">
+                <input type="password" id="login-pass-confirm" placeholder="Confirmar Contraseña" style="width: 100%; background: #13141a; color: white; border: 1px solid #2a2d3a; padding: 14px; border-radius: 8px; font-size: 0.95rem; box-sizing: border-box; outline: none; display: none;">
+            </div>
+            
+            <div style="width: 100%; margin-top: 5px;">
+                <button class="main-btn" id="btn-auth-action" style="background: #5b58f5; color: white; padding: 14px; width: 100%; border: none; border-radius: 8px; font-size: 1rem; font-weight: bold; cursor: pointer;" onclick="processAuth()">Entrar</button>
+            </div>
+            
+            <button class="btn-google" onclick="signInWithGoogle()" style="background: white; color: #333; padding: 12px; border-radius: 8px; border: none; width: 100%; font-size: 0.9rem; font-weight: bold; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 10px;">
                 <svg viewBox="0 0 24 24" style="width:20px;height:20px;"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
                 Continuar con Google
             </button>
             
-            <div style="text-align:center; margin-top:15px; font-size:0.9rem;">
-                <a href="#" id="auth-toggle-link" style="color:var(--diamond); text-decoration:none;" onclick="toggleAuthMode()">¿No tienes cuenta? Regístrate</a>
+            <div style="text-align: center; margin-top: 5px;">
+                <a href="#" id="auth-toggle-link" style="color: #00d4ff; text-decoration: none; font-size: 0.9rem;" onclick="toggleAuthMode()">¿No tienes cuenta? Regístrate</a>
             </div>
         </div>
     </div>
 
-    <div id="notif-screen" class="overlay-screen" style="display: none; opacity: 0; z-index: 205;">
-        <div class="modal-panel" style="max-width: 450px; padding:0; overflow:hidden; background: var(--bg-app);">
-            <div style="padding: 15px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color);">
-                <h2 style="margin:0; font-size:1.3rem; display:flex; align-items:center; gap:10px;">🔔 Notificaciones</h2>
-            </div>
-            <div id="notif-list" style="width: 100%; max-height: 50vh; overflow-y: auto; padding: 15px; box-sizing: border-box;">
-                </div>
-            <div style="padding:15px; border-top:1px solid var(--border-color); background:var(--panel-bg); width:100%; box-sizing:border-box;">
-                <button class="main-btn btn-close" style="margin:0;" onclick="closeScreen('notif-screen')">Cerrar</button>
-            </div>
-        </div>
-    </div>
+    <div id="notif-screen" class="overlay-screen" style="display: none; opacity: 0; z-index: 205;">
+        <div class="modal-panel" style="max-width: 450px; padding:0; overflow:hidden; background: var(--bg-app);">
+            <div style="padding: 15px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color);">
+                <h2 style="margin:0; font-size:1.3rem; display:flex; align-items:center; gap:10px;">🔔 Notificaciones</h2>
+            </div>
+            <div id="notif-list" style="width: 100%; max-height: 50vh; overflow-y: auto; padding: 15px; box-sizing: border-box;">
+                </div>
+            <div style="padding:15px; border-top:1px solid var(--border-color); background:var(--panel-bg); width:100%; box-sizing:border-box;">
+                <button class="main-btn btn-close" style="margin:0;" onclick="closeScreen('notif-screen')">Cerrar</button>
+            </div>
+        </div>
+    </div>
 
-    <div id="friend-profile-screen" class="overlay-screen" style="display: none; opacity: 0; z-index: 210;">
-        <div class="modal-panel" style="max-width: 400px; text-align: center;">
-            <div class="avatar-pill" id="fp-avatar" style="width: 80px; height: 80px; font-size: 3rem; margin: 0 auto; border: 4px solid var(--gold);">⚽</div>
-            <h2 id="fp-name" style="margin: 10px 0 5px 0;">Jugador</h2>
-            <div style="color:var(--gold); font-family:monospace; margin-bottom: 5px;">Código: <span id="fp-code">123456</span></div>
-            
-            <div id="fp-bio" style="font-style:italic; color:var(--text-color); margin-bottom: 15px; background:rgba(255,255,255,0.05); padding:12px; border-radius:10px; font-size:0.95rem; border:1px solid var(--border-color);">Sin descripción.</div>
+    <div id="friend-profile-screen" class="overlay-screen" style="display: none; opacity: 0; z-index: 210;">
+        <div class="modal-panel" style="max-width: 400px; text-align: center;">
+            <div class="avatar-pill" id="fp-avatar" style="width: 80px; height: 80px; font-size: 3rem; margin: 0 auto; border: 4px solid var(--gold);">⚽</div>
+            <h2 id="fp-name" style="margin: 10px 0 5px 0;">Jugador</h2>
+            <div style="color:var(--gold); font-family:monospace; margin-bottom: 5px;">Código: <span id="fp-code">123456</span></div>
+            
+            <div id="fp-bio" style="font-style:italic; color:var(--text-color); margin-bottom: 15px; background:rgba(255,255,255,0.05); padding:12px; border-radius:10px; font-size:0.95rem; border:1px solid var(--border-color);">Sin descripción.</div>
 
-            <div id="fp-status" style="font-weight: bold; margin-bottom: 20px; color: var(--text-muted);">Última vez: ---</div>
-            
-            <button class="main-btn" id="fp-action-btn" style="background:var(--primary); margin-bottom: 10px;" onclick="inviteToLobbyFromProfile()">🎮 Invitar al grupo</button>
-            <button class="main-btn" style="background:var(--danger); margin-bottom: 10px;" onclick="deleteFriendFromProfile()">🗑️ Eliminar Amigo</button>
-            <button class="main-btn btn-close" onclick="closeScreen('friend-profile-screen')">Cerrar</button>
-        </div>
-    </div>
+            <div id="fp-status" style="font-weight: bold; margin-bottom: 20px; color: var(--text-muted);">Última vez: ---</div>
+            
+            <button class="main-btn" id="fp-action-btn" style="background:var(--primary); margin-bottom: 10px;" onclick="inviteToLobbyFromProfile()">🎮 Invitar al grupo</button>
+            <button class="main-btn" style="background:var(--danger); margin-bottom: 10px;" onclick="deleteFriendFromProfile()">🗑️ Eliminar Amigo</button>
+            <button class="main-btn btn-close" onclick="closeScreen('friend-profile-screen')">Cerrar</button>
+        </div>
+    </div>
 
-    <div id="lobby-screen">
-        <div class="lobby-header-new">
-            <button class="btn-atras" onclick="goHome()">❮ Atrás</button>
-            <div class="lobby-title-new">SALA DE JUEGO</div>
-            <button class="btn-atras" style="background:var(--primary);" onclick="openCasillero()">🎒 Casillero</button>
-        </div>
-        <div class="lobby-stage">
-            <div class="pedestal-container"><div class="pedestal-oval"></div><div class="pedestal-avatar-new dashed" onclick="friendScreenContext = 'lobby'; openScreen('friends-screen'); renderFriends();">+</div><div class="pedestal-tag">Invitar</div></div>
-            <div class="pedestal-container" style="transform: scale(1.15); z-index: 10; margin-bottom: 20px;"><div class="pedestal-oval center"></div><div class="pedestal-avatar-new solid" id="lobby-p1-av">⚽</div><div class="pedestal-tag gold" id="lobby-p1-name">Jugador</div><div id="lobby-p1-status" class="player-status-lbl" style="color:var(--success)">LISTO</div></div>
-            <div class="pedestal-container" id="lobby-guest-container"><div class="pedestal-oval empty" id="lobby-p2-oval"></div><div class="pedestal-avatar-new empty" id="lobby-p2-av"></div><div class="pedestal-tag" id="lobby-p2-name">---</div><div id="lobby-p2-status" class="player-status-lbl"></div></div>
-        </div>
-        <div class="lobby-action-bar">
-            <div class="mode-select-btn" onclick="openScreen('mode-select-screen')"><span style="font-size: 0.7rem; color: var(--gold); font-weight: bold;">MODO DE JUEGO</span><span id="lobby-mode-display" style="font-size: 1.1rem; font-weight: bold;">👤 Normal vs IA</span></div>
-            <button id="btn-lobby-action" class="play-btn-ready start" onclick="handleLobbyAction()">¡JUGAR!</button>
-        </div>
-    </div>
+    <div id="lobby-screen">
+        <div class="lobby-header-new">
+            <button class="btn-atras" onclick="goHome()">❮ Atrás</button>
+            <div class="lobby-title-new">SALA DE JUEGO</div>
+            <button class="btn-atras" style="background:var(--primary);" onclick="openCasillero()">🎒 Casillero</button>
+        </div>
+        <div class="lobby-stage">
+            <div class="pedestal-container"><div class="pedestal-oval"></div><div class="pedestal-avatar-new dashed" onclick="friendScreenContext = 'lobby'; openScreen('friends-screen'); renderFriends();">+</div><div class="pedestal-tag">Invitar</div></div>
+            <div class="pedestal-container" style="transform: scale(1.15); z-index: 10; margin-bottom: 20px;"><div class="pedestal-oval center"></div><div class="pedestal-avatar-new solid" id="lobby-p1-av">⚽</div><div class="pedestal-tag gold" id="lobby-p1-name">Jugador</div><div id="lobby-p1-status" class="player-status-lbl" style="color:var(--success)">LISTO</div></div>
+            <div class="pedestal-container" id="lobby-guest-container"><div class="pedestal-oval empty" id="lobby-p2-oval"></div><div class="pedestal-avatar-new empty" id="lobby-p2-av"></div><div class="pedestal-tag" id="lobby-p2-name">---</div><div id="lobby-p2-status" class="player-status-lbl"></div></div>
+        </div>
+        <div class="lobby-action-bar">
+            <div class="mode-select-btn" onclick="openScreen('mode-select-screen')"><span style="font-size: 0.7rem; color: var(--gold); font-weight: bold;">MODO DE JUEGO</span><span id="lobby-mode-display" style="font-size: 1.1rem; font-weight: bold;">👤 Normal vs IA</span></div>
+            <button id="btn-lobby-action" class="play-btn-ready start" onclick="handleLobbyAction()">¡JUGAR!</button>
+        </div>
+    </div>
 
-    <div id="dashboard-screen">
-        <div class="dash-header">
-            <div class="dash-logo">⚽ FutCard Play</div>
-            <div class="dash-stats-bar">
-                <div class="stat-pill" onclick="openScreen('notif-screen')" style="cursor:pointer; position:relative;">🔔 <span id="notif-badge" style="background:var(--danger); color:white; border-radius:50%; padding:2px 6px; font-size:0.7rem; position:absolute; top:-5px; right:-5px; display:none;">0</span></div>
-                
-                <div class="stat-pill" style="color: var(--diamond);">💎 <span id="dash-dia">0</span></div>
-                <div class="stat-pill" style="color: var(--gold);">⭐ <span id="dash-stars">0</span></div>
-                <div class="stat-pill" style="color: var(--gold);">🪙 <span id="dash-coins">0</span></div>
-                <div class="avatar-pill" id="dash-avatar">⚽</div>
-            </div>
-        </div>
-        <div class="dash-content">
-            <div class="profile-card">
-                <div class="welcome-text" data-i18n="welcome">Bienvenido de vuelta,</div>
-                <div class="dash-username" id="dash-username">Jugador 1</div>
-                <div class="dash-code"><span data-i18n="friend_code">Código de amigo:</span> <span id="dash-friend-code">------</span></div>
-                <div class="card-stats">
-                    <span style="color: var(--gold);">🪙 <span id="dash-card-coins">0</span></span>
-                    <span style="color: var(--diamond);">💎 <span id="dash-card-dia">0</span></span>
-                    <span style="color: var(--gold);">⭐ <span id="dash-card-stars">0</span></span>
-                </div>
-                <div class="level-badge">🏅 <span data-i18n="level">Niv.</span> <span id="dash-level">1</span></div>
-                <div class="xp-bar-container"><div class="xp-bar-fill" id="dash-xp-fill"></div></div>
-                <div class="xp-text"><span id="dash-xp-text">0 / 100</span> XP</div>
-            </div>
-            <div style="display:flex; flex-direction:column; flex:1; gap:10px;">
-                <div class="play-card" onclick="openLobby()">
-                    <div class="play-info"><div class="play-icon">🏟️</div><div><div class="play-title" data-i18n="play_btn">¡Jugar!</div><div class="play-subtitle" data-i18n="play_desc">Gol de oro, clima y replays</div></div></div>
-                    <div style="font-size:1.5rem; color:rgba(255,255,255,0.5);">❯</div>
-                </div>
-                <div class="banner-pass" onclick="openScreen('pass-screen'); renderPass();">
-                    <div><h3 data-i18n="pass_title">Pase Estelar</h3><p style="color: rgba(255,255,255,0.8); margin:0; font-size:0.9rem;">Desbloquea recompensas</p></div>
-                    <div style="font-size:2rem;">🎫</div>
-                </div>
+    <div id="dashboard-screen">
+        <div class="dash-header">
+            <div class="dash-logo">⚽ FutCard Play</div>
+            <div class="dash-stats-bar">
+                <div class="stat-pill" onclick="openScreen('notif-screen')" style="cursor:pointer; position:relative;">🔔 <span id="notif-badge" style="background:var(--danger); color:white; border-radius:50%; padding:2px 6px; font-size:0.7rem; position:absolute; top:-5px; right:-5px; display:none;">0</span></div>
+                
+                <div class="stat-pill" style="color: var(--diamond);">💎 <span id="dash-dia">0</span></div>
+                <div class="stat-pill" style="color: var(--gold);">⭐ <span id="dash-stars">0</span></div>
+                <div class="stat-pill" style="color: var(--gold);">🪙 <span id="dash-coins">0</span></div>
+                <div class="avatar-pill" id="dash-avatar">⚽</div>
+            </div>
+        </div>
+        <div class="dash-content">
+            <div class="profile-card">
+                <div class="welcome-text" data-i18n="welcome">Bienvenido de vuelta,</div>
+                <div class="dash-username" id="dash-username">Jugador 1</div>
+                <div class="dash-code"><span data-i18n="friend_code">Código de amigo:</span> <span id="dash-friend-code">------</span></div>
+                <div class="card-stats">
+                    <span style="color: var(--gold);">🪙 <span id="dash-card-coins">0</span></span>
+                    <span style="color: var(--diamond);">💎 <span id="dash-card-dia">0</span></span>
+                    <span style="color: var(--gold);">⭐ <span id="dash-card-stars">0</span></span>
+                </div>
+                <div class="level-badge">🏅 <span data-i18n="level">Niv.</span> <span id="dash-level">1</span></div>
+                <div class="xp-bar-container"><div class="xp-bar-fill" id="dash-xp-fill"></div></div>
+                <div class="xp-text"><span id="dash-xp-text">0 / 100</span> XP</div>
+            </div>
+            <div style="display:flex; flex-direction:column; flex:1; gap:10px;">
+                <div class="play-card" onclick="openLobby()">
+                    <div class="play-info"><div class="play-icon">🏟️</div><div><div class="play-title" data-i18n="play_btn">¡Jugar!</div><div class="play-subtitle" data-i18n="play_desc">Gol de oro, clima y replays</div></div></div>
+                    <div style="font-size:1.5rem; color:rgba(255,255,255,0.5);">❯</div>
+                </div>
+                <div class="banner-pass" onclick="openScreen('pass-screen'); renderPass();">
+                    <div><h3 data-i18n="pass_title">Pase Estelar</h3><p style="color: rgba(255,255,255,0.8); margin:0; font-size:0.9rem;">Desbloquea recompensas</p></div>
+                    <div style="font-size:2rem;">🎫</div>
+                </div>
 
-                <div id="logros-alcanzados" style="background: var(--panel-bg); border-radius: 15px; padding: 20px; border: 1px solid var(--border-color); margin-top: 10px; width: 100%; box-sizing: border-box;">
-                    <h3 style="margin: 0 0 15px 0; color: var(--gold); font-size: 1.1rem;">🏆 Logros Alcanzados</h3>
-                    <div style="display: flex; gap: 10px; overflow-x: auto; scrollbar-width: none; padding-bottom: 5px;">
-                        <div style="background: rgba(34, 197, 94, 0.1); border: 1px solid var(--success); padding: 10px; border-radius: 10px; min-width: 100px; text-align: center;">
-                            <div style="font-size: 1.5rem;">🌟</div>
-                            <div style="font-size: 0.75rem; font-weight: bold; margin-top: 5px;">Primeros Pasos</div>
-                        </div>
-                        <div style="background: rgba(59, 130, 246, 0.1); border: 1px solid var(--primary); padding: 10px; border-radius: 10px; min-width: 100px; text-align: center;">
-                            <div style="font-size: 1.5rem;">⚽</div>
-                            <div style="font-size: 0.75rem; font-weight: bold; margin-top: 5px;">Goleador</div>
-                        </div>
-                        <div style="background: rgba(255, 255, 255, 0.05); border: 1px dashed var(--text-muted); padding: 10px; border-radius: 10px; min-width: 100px; text-align: center; opacity: 0.6;">
-                            <div style="font-size: 1.5rem;">🤝</div>
-                            <div style="font-size: 0.75rem; font-weight: bold; margin-top: 5px;">Sociable</div>
-                        </div>
-                    </div>
-                </div>
-                </div>
-        </div>
-    </div>
+                <div id="logros-alcanzados" style="background: var(--panel-bg); border-radius: 15px; padding: 20px; border: 1px solid var(--border-color); margin-top: 10px; width: 100%; box-sizing: border-box;">
+                    <h3 style="margin: 0 0 15px 0; color: var(--gold); font-size: 1.1rem;">🏆 Logros Alcanzados</h3>
+                    <div style="display: flex; gap: 10px; overflow-x: auto; scrollbar-width: none; padding-bottom: 5px;">
+                        <div style="background: rgba(34, 197, 94, 0.1); border: 1px solid var(--success); padding: 10px; border-radius: 10px; min-width: 100px; text-align: center;">
+                            <div style="font-size: 1.5rem;">🌟</div>
+                            <div style="font-size: 0.75rem; font-weight: bold; margin-top: 5px;">Primeros Pasos</div>
+                        </div>
+                        <div style="background: rgba(59, 130, 246, 0.1); border: 1px solid var(--primary); padding: 10px; border-radius: 10px; min-width: 100px; text-align: center;">
+                            <div style="font-size: 1.5rem;">⚽</div>
+                            <div style="font-size: 0.75rem; font-weight: bold; margin-top: 5px;">Goleador</div>
+                        </div>
+                        <div style="background: rgba(255, 255, 255, 0.05); border: 1px dashed var(--text-muted); padding: 10px; border-radius: 10px; min-width: 100px; text-align: center; opacity: 0.6;">
+                            <div style="font-size: 1.5rem;">🤝</div>
+                            <div style="font-size: 0.75rem; font-weight: bold; margin-top: 5px;">Sociable</div>
+                        </div>
+                    </div>
+                </div>
+                </div>
+        </div>
+    </div>
 
-    <div class="bottom-nav" id="bottom-nav">
-        <div class="nav-item active" onclick="goHome()"><div class="nav-icon">🏠</div><div class="nav-label" data-i18n="nav_home">Inicio</div></div>
-        <div class="nav-item" onclick="openEquipo()"><div class="nav-icon">📋</div><div class="nav-label" data-i18n="nav_team">Misiones</div></div>
-        <div class="nav-item" onclick="friendScreenContext = 'social'; openScreen('friends-screen'); renderFriends();"><div class="nav-icon">🤝</div><div class="nav-label" data-i18n="nav_social">Social</div></div>
-        <div class="nav-item" onclick="openLobby()"><div class="nav-icon">⚽</div><div class="nav-label" data-i18n="nav_play">Jugar</div></div>
-        <div class="nav-item" onclick="openShop()"><div class="nav-icon">🛒</div><div class="nav-label" data-i18n="nav_shop">Tienda</div></div>
-        <div class="nav-item" onclick="openSettings()"><div class="nav-icon">⚙️</div><div class="nav-label" data-i18n="nav_settings">Ajustes</div></div>
-    </div>
+    <div class="bottom-nav" id="bottom-nav">
+        <div class="nav-item active" onclick="goHome()"><div class="nav-icon">🏠</div><div class="nav-label" data-i18n="nav_home">Inicio</div></div>
+        <div class="nav-item" onclick="openEquipo()"><div class="nav-icon">📋</div><div class="nav-label" data-i18n="nav_team">Misiones</div></div>
+        <div class="nav-item" onclick="friendScreenContext = 'social'; openScreen('friends-screen'); renderFriends();"><div class="nav-icon">🤝</div><div class="nav-label" data-i18n="nav_social">Social</div></div>
+        <div class="nav-item" onclick="openLobby()"><div class="nav-icon">⚽</div><div class="nav-label" data-i18n="nav_play">Jugar</div></div>
+        <div class="nav-item" onclick="openShop()"><div class="nav-icon">🛒</div><div class="nav-label" data-i18n="nav_shop">Tienda</div></div>
+        <div class="nav-item" onclick="openSettings()"><div class="nav-icon">⚙️</div><div class="nav-label" data-i18n="nav_settings">Ajustes</div></div>
+    </div>
 
-    <div id="match-interface">
-        <div class="game-wrapper">
-            <canvas id="weather-overlay" width="1000" height="500"></canvas>
-            <canvas id="gameCanvas" width="1000" height="500"></canvas>
-            
-            <div id="chaos-banner"></div>
+    <div id="match-interface">
+        <div class="game-wrapper">
+            <canvas id="weather-overlay" width="1000" height="500"></canvas>
+            <canvas id="gameCanvas" width="1000" height="500"></canvas>
+            
+            <div id="chaos-banner"></div>
 
-            <div id="match-ui-layer">
-                <div class="match-top-bar">
-                    <button class="match-btn-icon" onclick="abandonMatch()">←</button>
-                    <div class="match-scoreboard-container">
-                        <div class="match-scoreboard">
-                            SCORE: <span class="num" id="score1">0</span> - <span class="num2" id="score2">0</span> &bull; 
-                            <span id="half-indicator">1er TIEMPO</span> &bull; 
-                            TIME: <span class="time" id="timer">01:30</span>
-                        </div>
-                        <div class="match-team-badges">
-                            <span class="badge-home" data-i18n="badge_home">LOCAL</span>
-                            <span class="badge-away" data-i18n="badge_away">VISIT.</span>
-                        </div>
-                    </div>
-                    <button class="match-btn-icon" onclick="togglePause()">⏸</button>
-                </div>
-                
-                <div class="mobile-controls-layer">
-                    <div class="virtual-joystick" id="virtual-joystick">
-                        <div class="joystick-knob" id="joystick-knob"></div>
-                    </div>
-                    
-                    <div class="emote-container" id="emote-container-box">
-                        <div class="emote-menu" id="emote-menu">
-                            <div class="emote-item" onclick="sendEmote('😂')">😂</div>
-                            <div class="emote-item" onclick="sendEmote('😡')">😡</div>
-                            <div class="emote-item" onclick="sendEmote('😱')">😱</div>
-                            <div class="emote-item" onclick="sendEmote('🏆')">🏆</div>
-                        </div>
-                        <div class="emote-btn-toggle" onclick="toggleEmoteMenu()">💬</div>
-                    </div>
+            <div id="match-ui-layer">
+                <div class="match-top-bar">
+                    <button class="match-btn-icon" onclick="abandonMatch()">←</button>
+                    <div class="match-scoreboard-container">
+                        <div class="match-scoreboard">
+                            SCORE: <span class="num" id="score1">0</span> - <span class="num2" id="score2">0</span> &bull; 
+                            <span id="half-indicator">1er TIEMPO</span> &bull; 
+                            TIME: <span class="time" id="timer">01:30</span>
+                        </div>
+                        <div class="match-team-badges">
+                            <span class="badge-home" data-i18n="badge_home">LOCAL</span>
+                            <span class="badge-away" data-i18n="badge_away">VISIT.</span>
+                        </div>
+                    </div>
+                    <button class="match-btn-icon" onclick="togglePause()">⏸</button>
+                </div>
+                
+                <div class="mobile-controls-layer">
+                    <div class="virtual-joystick" id="virtual-joystick">
+                        <div class="joystick-knob" id="joystick-knob"></div>
+                    </div>
+                    
+                    <div class="emote-container" id="emote-container-box">
+                        <div class="emote-menu" id="emote-menu">
+                            <div class="emote-item" onclick="sendEmote('😂')">😂</div>
+                            <div class="emote-item" onclick="sendEmote('😡')">😡</div>
+                            <div class="emote-item" onclick="sendEmote('😱')">😱</div>
+                            <div class="emote-item" onclick="sendEmote('🏆')">🏆</div>
+                        </div>
+                        <div class="emote-btn-toggle" onclick="toggleEmoteMenu()">💬</div>
+                    </div>
 
-                    <div class="action-buttons" id="action-buttons-box">
-                        <div id="btn-sprint" class="action-btn action-sprint"><span class="action-icon">⚡</span>SPRINT</div>
-                        <div id="btn-kick" class="action-btn action-kick"><span class="action-icon">👟</span>KICK</div>
-                        <div id="btn-pass" class="action-btn action-pass"><span class="action-icon">🎯</span>PASS</div>
-                    </div>
-                </div>
-            </div>
-            
-            <div id="replay-badge">REPLAY</div>
-            <div id="goal-screen">⚽</div>
-            
-            <div id="hud-edit-overlay">
-                <button onclick="resetHUD()" style="background:var(--danger); color:white;">Restablecer</button>
-                <div>TAMAÑO: <input type="range" id="hud-scale-slider" min="0.5" max="2" step="0.1" value="1" oninput="updateHUDScale(this.value)"></div>
-                <button onclick="saveHUD()" style="background:var(--success); color:white;">Guardar</button>
-            </div>
-        </div>
-    </div>
+                    <div class="action-buttons" id="action-buttons-box">
+                        <div id="btn-sprint" class="action-btn action-sprint"><span class="action-icon">⚡</span>SPRINT</div>
+                        <div id="btn-kick" class="action-btn action-kick"><span class="action-icon">👟</span>KICK</div>
+                        <div id="btn-pass" class="action-btn action-pass"><span class="action-icon">🎯</span>PASS</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="replay-badge">REPLAY</div>
+            <div id="goal-screen">⚽</div>
+            
+            <div id="hud-edit-overlay">
+                <button onclick="resetHUD()" style="background:var(--danger); color:white;">Restablecer</button>
+                <div>TAMAÑO: <input type="range" id="hud-scale-slider" min="0.5" max="2" step="0.1" value="1" oninput="updateHUDScale(this.value)"></div>
+                <button onclick="saveHUD()" style="background:var(--success); color:white;">Guardar</button>
+            </div>
+        </div>
+    </div>
 
-    <div id="diff-select-screen" class="overlay-screen" style="display: none; opacity: 0;">
-        <div class="modal-panel" style="max-width: 350px;">
-            <h2>Dificultad IA</h2>
-            <div style="display:flex; flex-direction:column; gap:5px; width:100%; max-height: 45vh; overflow-y:auto;">
-                <button class="main-btn" style="background:#16a34a; padding:10px;" onclick="startAI(1)">1 - Muy fácil</button>
-                <button class="main-btn" style="background:#22c55e; padding:10px;" onclick="startAI(2)">2 - Fácil</button>
-                <button class="main-btn" style="background:#3b82f6; padding:10px;" onclick="startAI(3)">3 - Novato</button>
-                <button class="main-btn" style="background:#6366f1; padding:10px;" onclick="startAI(4)">4 - Principiante</button>
-                <button class="main-btn" style="background:#8b5cf6; padding:10px;" onclick="startAI(5)">5 - Medio</button>
-                <button class="main-btn" style="background:#f59e0b; padding:10px;" onclick="startAI(6)">6 - Difícil</button>
-                <button class="main-btn" style="background:#ea580c; padding:10px;" onclick="startAI(7)">7 - Muy difícil</button>
-                <button class="main-btn" style="background:#ef4444; padding:10px;" onclick="startAI(8)">8 - Avanzado</button>
-                <button class="main-btn" style="background:#b91c1c; padding:10px;" onclick="startAI(9)">9 - Experto</button>
-            </div>
-            <button class="main-btn btn-close" onclick="closeScreen('diff-select-screen')">Cancelar</button>
-        </div>
-    </div>
+    <div id="diff-select-screen" class="overlay-screen" style="display: none; opacity: 0;">
+        <div class="modal-panel" style="max-width: 350px;">
+            <h2>Dificultad IA</h2>
+            <div style="display:flex; flex-direction:column; gap:5px; width:100%; max-height: 45vh; overflow-y:auto;">
+                <button class="main-btn" style="background:#16a34a; padding:10px;" onclick="startAI(1)">1 - Muy fácil</button>
+                <button class="main-btn" style="background:#22c55e; padding:10px;" onclick="startAI(2)">2 - Fácil</button>
+                <button class="main-btn" style="background:#3b82f6; padding:10px;" onclick="startAI(3)">3 - Novato</button>
+                <button class="main-btn" style="background:#6366f1; padding:10px;" onclick="startAI(4)">4 - Principiante</button>
+                <button class="main-btn" style="background:#8b5cf6; padding:10px;" onclick="startAI(5)">5 - Medio</button>
+                <button class="main-btn" style="background:#f59e0b; padding:10px;" onclick="startAI(6)">6 - Difícil</button>
+                <button class="main-btn" style="background:#ea580c; padding:10px;" onclick="startAI(7)">7 - Muy difícil</button>
+                <button class="main-btn" style="background:#ef4444; padding:10px;" onclick="startAI(8)">8 - Avanzado</button>
+                <button class="main-btn" style="background:#b91c1c; padding:10px;" onclick="startAI(9)">9 - Experto</button>
+            </div>
+            <button class="main-btn btn-close" onclick="closeScreen('diff-select-screen')">Cancelar</button>
+        </div>
+    </div>
 
-    <div id="mode-select-screen" class="overlay-screen" style="display: none; opacity: 0;">
-        <div class="modal-panel" style="max-width: 600px;">
-            <h2 data-i18n="select_mode">Selecciona un Modo</h2>
-            <div style="display:flex; width:100%; gap:20px; flex-wrap: wrap;">
-                <div style="flex:1; display:flex; flex-direction:column; gap:10px; min-width:200px;">
-                    <h3 style="color:var(--gold); border-bottom:1px solid var(--border-color); padding-bottom:5px; margin:0;">SOLITARIO</h3>
-                    <button class="main-btn" style="background:var(--primary); padding:10px;" onclick="setLobbyMode('pve', 'normal', '👤 Normal vs IA')">Normal vs IA</button>
-                    <button class="main-btn" style="background:var(--gold); color:black; padding:10px;" onclick="setLobbyMode('pve', 'golden', '🏆 Gol de Oro vs IA')">Gol de Oro vs IA</button>
-                </div>
-                <div style="flex:1; display:flex; flex-direction:column; gap:10px; min-width:200px;">
-                    <h3 style="color:var(--diamond); border-bottom:1px solid var(--border-color); padding-bottom:5px; margin:0;">MULTIJUGADOR</h3>
-                    <button class="main-btn" style="background:var(--danger); padding:10px;" onclick="setLobbyMode('pvp', 'normal', '🎮 Local 1 vs 1')">Local 1 vs 1</button>
-                    <button class="main-btn" style="background:#1e40af; padding:10px;" onclick="setLobbyMode('online', 'normal', '🌍 Online 1 vs 1')">Online 1 vs 1</button>
-                    <button class="main-btn" style="background:#6d28d9; padding:10px;" onclick="setLobbyMode('online2v2', 'normal', '👥 Online 2 vs 2')">Online 2 vs 2</button>
-                </div>
-            </div>
-            
-            <h3 style="color:var(--danger); border-bottom:1px solid var(--border-color); padding-bottom:5px; margin:15px 0 0 0;">MODO CAOS 🌪️</h3>
-            <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:10px; width:100%;">
-                <button class="main-btn" style="background:#a855f7; flex:1; padding:10px;" onclick="setLobbyMode('pve', 'caos', '🌪️ Caos vs IA')">Caos vs IA</button>
-                <button class="main-btn" style="background:#ea580c; flex:1; padding:10px;" onclick="setLobbyMode('pvp', 'caos', '🌪️ Caos Local 1v1')">Caos Local</button>
-                <button class="main-btn" style="background:#dc2626; flex:1; padding:10px;" onclick="setLobbyMode('online', 'caos', '🌪️ Caos Online 1v1')">Caos Online</button>
-            </div>
+    <div id="mode-select-screen" class="overlay-screen" style="display: none; opacity: 0;">
+        <div class="modal-panel" style="max-width: 600px;">
+            <h2 data-i18n="select_mode">Selecciona un Modo</h2>
+            <div style="display:flex; width:100%; gap:20px; flex-wrap: wrap;">
+                <div style="flex:1; display:flex; flex-direction:column; gap:10px; min-width:200px;">
+                    <h3 style="color:var(--gold); border-bottom:1px solid var(--border-color); padding-bottom:5px; margin:0;">SOLITARIO</h3>
+                    <button class="main-btn" style="background:var(--primary); padding:10px;" onclick="setLobbyMode('pve', 'normal', '👤 Normal vs IA')">Normal vs IA</button>
+                    <button class="main-btn" style="background:var(--gold); color:black; padding:10px;" onclick="setLobbyMode('pve', 'golden', '🏆 Gol de Oro vs IA')">Gol de Oro vs IA</button>
+                </div>
+                <div style="flex:1; display:flex; flex-direction:column; gap:10px; min-width:200px;">
+                    <h3 style="color:var(--diamond); border-bottom:1px solid var(--border-color); padding-bottom:5px; margin:0;">MULTIJUGADOR</h3>
+                    <button class="main-btn" style="background:var(--danger); padding:10px;" onclick="setLobbyMode('pvp', 'normal', '🎮 Local 1 vs 1')">Local 1 vs 1</button>
+                    <button class="main-btn" style="background:#1e40af; padding:10px;" onclick="setLobbyMode('online', 'normal', '🌍 Online 1 vs 1')">Online 1 vs 1</button>
+                    <button class="main-btn" style="background:#6d28d9; padding:10px;" onclick="setLobbyMode('online2v2', 'normal', '👥 Online 2 vs 2')">Online 2 vs 2</button>
+                </div>
+            </div>
+            
+            <h3 style="color:var(--danger); border-bottom:1px solid var(--border-color); padding-bottom:5px; margin:15px 0 0 0;">MODO CAOS 🌪️</h3>
+            <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:10px; width:100%;">
+                <button class="main-btn" style="background:#a855f7; flex:1; padding:10px;" onclick="setLobbyMode('pve', 'caos', '🌪️ Caos vs IA')">Caos vs IA</button>
+                <button class="main-btn" style="background:#ea580c; flex:1; padding:10px;" onclick="setLobbyMode('pvp', 'caos', '🌪️ Caos Local 1v1')">Caos Local</button>
+                <button class="main-btn" style="background:#dc2626; flex:1; padding:10px;" onclick="setLobbyMode('online', 'caos', '🌪️ Caos Online 1v1')">Caos Online</button>
+            </div>
 
-            <button class="main-btn btn-close" style="width:50%; margin:15px auto 0 auto;" onclick="closeScreen('mode-select-screen')" data-i18n="btn_close">Cerrar</button>
-        </div>
-    </div>
+            <button class="main-btn btn-close" style="width:50%; margin:15px auto 0 auto;" onclick="closeScreen('mode-select-screen')" data-i18n="btn_close">Cerrar</button>
+        </div>
+    </div>
 
-    <div id="equipo-screen" class="overlay-screen" style="display: none; opacity: 0;">
-        <div class="modal-panel" style="max-width: 550px;">
-            <h2 data-i18n="team_title">Misiones</h2>
-            <div style="width: 100%; max-height:60vh; overflow-y:auto; padding-right:10px;">
-                <h3 style="margin: 0 0 5px 0; font-size: 1.1rem; color:var(--primary);" data-i18n="mission_daily">Diarias</h3>
-                <div id="daily-missions-list" style="width: 100%; margin-bottom: 20px;"></div>
-                <h3 style="margin: 0 0 5px 0; font-size: 1.1rem; color:var(--gold);" data-i18n="mission_weekly">Semanales</h3>
-                <div id="weekly-missions-list" style="width: 100%;"></div>
-            </div>
-            <button class="main-btn btn-close" onclick="closeScreen('equipo-screen')" data-i18n="btn_close">Cerrar</button>
-        </div>
-    </div>
+    <div id="equipo-screen" class="overlay-screen" style="display: none; opacity: 0;">
+        <div class="modal-panel" style="max-width: 550px;">
+            <h2 data-i18n="team_title">Misiones</h2>
+            <div style="width: 100%; max-height:60vh; overflow-y:auto; padding-right:10px;">
+                <h3 style="margin: 0 0 5px 0; font-size: 1.1rem; color:var(--primary);" data-i18n="mission_daily">Diarias</h3>
+                <div id="daily-missions-list" style="width: 100%; margin-bottom: 20px;"></div>
+                <h3 style="margin: 0 0 5px 0; font-size: 1.1rem; color:var(--gold);" data-i18n="mission_weekly">Semanales</h3>
+                <div id="weekly-missions-list" style="width: 100%;"></div>
+            </div>
+            <button class="main-btn btn-close" onclick="closeScreen('equipo-screen')" data-i18n="btn_close">Cerrar</button>
+        </div>
+    </div>
 
-    <div id="pause-screen" class="overlay-screen" style="display: none; opacity: 0;">
-        <div class="modal-panel">
-            <h2 data-i18n="pause_title">Juego Pausado</h2>
-            <button class="main-btn btn-play-ia" onclick="togglePause()" data-i18n="btn_resume">▶ Continuar</button>
-            <button class="main-btn btn-play-local" onclick="abandonMatch()" data-i18n="btn_abandon">🚪 Abandonar</button>
-        </div>
-    </div>
+    <div id="pause-screen" class="overlay-screen" style="display: none; opacity: 0;">
+        <div class="modal-panel">
+            <h2 data-i18n="pause_title">Juego Pausado</h2>
+            <button class="main-btn btn-play-ia" onclick="togglePause()" data-i18n="btn_resume">▶ Continuar</button>
+            <button class="main-btn btn-play-local" onclick="abandonMatch()" data-i18n="btn_abandon">🚪 Abandonar</button>
+        </div>
+    </div>
 
-    <div id="match-overlay" class="overlay-screen" style="display: none; opacity: 0;">
-        <div class="modal-panel" style="max-width: 550px;">
-            <h2 id="match-overlay-title">Fin 1er Tiempo</h2>
-            <div id="match-stats" style="width: 100%;"></div>
-            <button id="match-overlay-btn" class="main-btn btn-play-ia" style="margin-top:20px;" onclick="continueMatch()">Siguiente</button>
-        </div>
-    </div>
+    <div id="match-overlay" class="overlay-screen" style="display: none; opacity: 0;">
+        <div class="modal-panel" style="max-width: 550px;">
+            <h2 id="match-overlay-title">Fin 1er Tiempo</h2>
+            <div id="match-stats" style="width: 100%;"></div>
+            <button id="match-overlay-btn" class="main-btn btn-play-ia" style="margin-top:20px;" onclick="continueMatch()">Siguiente</button>
+        </div>
+    </div>
 
-    <div id="friends-screen" class="overlay-screen" style="display: none; opacity: 0;">
-        <div class="modal-panel" style="max-width: 450px; padding:0; overflow:hidden; background: var(--bg-app);">
-            <div style="padding: 15px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color);">
-                <h2 style="margin:0; font-size:1.3rem; display:flex; align-items:center; gap:10px;"><span style="color:var(--gold);">🤝</span> <span data-i18n="social_title">Amigos</span></h2>
-                <div style="background:var(--input-bg); padding:5px 10px; border-radius:8px; font-size:0.8rem; display:flex; align-items:center; gap:10px;">
-                    <span style="color:var(--text-muted);">Tu código:</span> <span style="color:var(--gold); font-weight:bold;" id="modal-friend-code-top">------</span>
-                    <button onclick="copyMyCode()" style="background:rgba(255,255,255,0.1); border:none; color:white; padding:5px 10px; border-radius:5px; cursor:pointer;">Copiar</button>
-                </div>
-            </div>
-            <div class="tabs-header" style="margin:0; padding: 10px; background: var(--panel-bg); border-bottom:none;">
-                <button class="tab-btn active" id="tab-fr-list" onclick="switchFriendsTab('list')" style="border-radius:8px;">Amigos (<span id="fr-count">0</span>)</button>
-                <button class="tab-btn" id="tab-fr-req" onclick="switchFriendsTab('req')" style="border-radius:8px;">Solicitudes (<span id="req-count">0</span>)</button>
-                <button class="tab-btn" id="tab-fr-add" onclick="switchFriendsTab('add')" style="border-radius:8px;">➕ Añadir</button>
-            </div>
-            <div id="fr-content-list" style="width: 100%; max-height: 50vh; overflow-y: auto; padding: 15px; box-sizing: border-box;"><div id="friends-list"></div></div>
-            <div id="fr-content-req" style="display:none; width: 100%; max-height: 50vh; overflow-y: auto; padding: 15px; box-sizing: border-box;"><div id="pending-list"></div></div>
-            <div id="fr-content-add" style="display:none; width: 100%; max-height: 50vh; overflow-y: auto; padding: 15px; box-sizing: border-box;">
-                <div style="background: var(--panel-bg); border-radius:12px; padding:15px; margin-bottom:15px;">
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-                        <h3 style="margin:0; font-size:1rem; display:flex; align-items:center; gap:5px;">🔢 Buscar código</h3>
-                        <label for="qr-scan-input" style="background:#1e3a8a; color:white; padding:8px 12px; border-radius:8px; cursor:pointer; font-size:0.85rem; font-weight:bold; display:flex; align-items:center; gap:5px;">📷 Escanear</label>
-                        <input type="file" id="qr-scan-input" accept="image/*" capture="environment" style="display:none;" onchange="handleQRScan(event)">
-                    </div>
-                    <div style="display:flex; gap:10px;">
-                        <input type="text" id="add-friend-input" placeholder="000000" maxlength="6" style="flex:1; padding:12px; border-radius:8px; border:none; background:var(--input-bg); color:white; text-align:center; font-family:monospace; font-size:1.2rem; letter-spacing:5px;">
-                        <button onclick="sendFriendRequest()" style="background:var(--primary); color:white; border:none; border-radius:8px; padding:0 20px; font-weight:bold; cursor:pointer;">Enviar</button>
-                    </div>
-                </div>
-                <div style="background: var(--panel-bg); border-radius:12px; padding:15px; margin-bottom:15px;">
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-                        <h3 style="margin:0; font-size:1rem; display:flex; align-items:center; gap:5px;">📲 Mi código QR</h3>
-                        <button onclick="toggleQR()" id="btn-toggle-qr" style="background:rgba(255,255,255,0.1); border:none; color:white; padding:8px 12px; border-radius:8px; cursor:pointer; font-size:0.85rem; font-weight:bold;">👁️ Mostrar</button>
-                    </div>
-                    <div id="qr-display-box" style="display:none; justify-content:center; align-items:center; margin-top:15px; background:white; padding:15px; border-radius:10px;">
-                        <div style="width:120px; height:120px; background:url('data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 fill=%22white%22/><rect x=%2210%22 y=%2210%22 width=%2230%22 height=%2230%22 fill=%22none%22 stroke=%22black%22 stroke-width=%2210%22/><rect x=%2260%22 y=%2210%22 width=%2230%22 height=%2230%22 fill=%22none%22 stroke=%22black%22 stroke-width=%2210%22/><rect x=%2210%22 y=%2260%22 width=%2230%22 height=%2230%22 fill=%22none%22 stroke=%22black%22 stroke-width=%2210%22/><rect x=%2260%22 y=%2260%22 width=%2210%22 height=%2210%22 fill=%22black%22/><rect x=%2280%22 y=%2280%22 width=%2210%22 height=%2210%22 fill=%22black%22/><rect x=%2245%22 y=%2245%22 width=%2210%22 height=%2210%22 fill=%22black%22/></svg>') center/cover; border: 5px solid white;"></div>
-                    </div>
-                </div>
-                <div style="background: var(--panel-bg); border-radius:12px; padding:15px;">
-                    <h3 style="margin:0 0 10px 0; font-size:1rem; display:flex; align-items:center; gap:5px;">🔗 Enlace de invitación</h3>
-                    <div style="display:flex; gap:10px; margin-bottom:10px;">
-                        <input type="text" id="invite-link-input" readonly value="https://futcard.app/invite?c=" style="flex:1; padding:12px; border-radius:8px; border:none; background:var(--input-bg); color:var(--primary); font-size:0.8rem;">
-                        <button onclick="copyInviteLink()" style="background:var(--primary); color:white; border:none; border-radius:8px; padding:0 15px; font-weight:bold; cursor:pointer;">Copiar</button>
-                    </div>
-                    <button onclick="shareInviteLink()" style="width:100%; background:#16a34a; color:white; border:none; padding:12px; border-radius:8px; font-weight:bold; font-size:1rem; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:10px;">📤 Compartir por App</button>
-                </div>
-            </div>
-            <div style="padding:15px; border-top:1px solid var(--border-color); background:var(--panel-bg); width:100%; box-sizing:border-box;">
-                <button class="main-btn btn-close" style="margin:0;" onclick="closeScreen('friends-screen')" data-i18n="btn_back">Volver</button>
-            </div>
-        </div>
-    </div>
+    <div id="friends-screen" class="overlay-screen" style="display: none; opacity: 0;">
+        <div class="modal-panel" style="max-width: 450px; padding:0; overflow:hidden; background: var(--bg-app);">
+            <div style="padding: 15px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color);">
+                <h2 style="margin:0; font-size:1.3rem; display:flex; align-items:center; gap:10px;"><span style="color:var(--gold);">🤝</span> <span data-i18n="social_title">Amigos</span></h2>
+                <div style="background:var(--input-bg); padding:5px 10px; border-radius:8px; font-size:0.8rem; display:flex; align-items:center; gap:10px;">
+                    <span style="color:var(--text-muted);">Tu código:</span> <span style="color:var(--gold); font-weight:bold;" id="modal-friend-code-top">------</span>
+                    <button onclick="copyMyCode()" style="background:rgba(255,255,255,0.1); border:none; color:white; padding:5px 10px; border-radius:5px; cursor:pointer;">Copiar</button>
+                </div>
+            </div>
+            <div class="tabs-header" style="margin:0; padding: 10px; background: var(--panel-bg); border-bottom:none;">
+                <button class="tab-btn active" id="tab-fr-list" onclick="switchFriendsTab('list')" style="border-radius:8px;">Amigos (<span id="fr-count">0</span>)</button>
+                <button class="tab-btn" id="tab-fr-req" onclick="switchFriendsTab('req')" style="border-radius:8px;">Solicitudes (<span id="req-count">0</span>)</button>
+                <button class="tab-btn" id="tab-fr-add" onclick="switchFriendsTab('add')" style="border-radius:8px;">➕ Añadir</button>
+            </div>
+            <div id="fr-content-list" style="width: 100%; max-height: 50vh; overflow-y: auto; padding: 15px; box-sizing: border-box;"><div id="friends-list"></div></div>
+            <div id="fr-content-req" style="display:none; width: 100%; max-height: 50vh; overflow-y: auto; padding: 15px; box-sizing: border-box;"><div id="pending-list"></div></div>
+            <div id="fr-content-add" style="display:none; width: 100%; max-height: 50vh; overflow-y: auto; padding: 15px; box-sizing: border-box;">
+                <div style="background: var(--panel-bg); border-radius:12px; padding:15px; margin-bottom:15px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                        <h3 style="margin:0; font-size:1rem; display:flex; align-items:center; gap:5px;">🔢 Buscar código</h3>
+                        <label for="qr-scan-input" style="background:#1e3a8a; color:white; padding:8px 12px; border-radius:8px; cursor:pointer; font-size:0.85rem; font-weight:bold; display:flex; align-items:center; gap:5px;">📷 Escanear</label>
+                        <input type="file" id="qr-scan-input" accept="image/*" capture="environment" style="display:none;" onchange="handleQRScan(event)">
+                    </div>
+                    <div style="display:flex; gap:10px;">
+                        <input type="text" id="add-friend-input" placeholder="000000" maxlength="6" style="flex:1; padding:12px; border-radius:8px; border:none; background:var(--input-bg); color:white; text-align:center; font-family:monospace; font-size:1.2rem; letter-spacing:5px;">
+                        <button onclick="sendFriendRequest()" style="background:var(--primary); color:white; border:none; border-radius:8px; padding:0 20px; font-weight:bold; cursor:pointer;">Enviar</button>
+                    </div>
+                </div>
+                <div style="background: var(--panel-bg); border-radius:12px; padding:15px; margin-bottom:15px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                        <h3 style="margin:0; font-size:1rem; display:flex; align-items:center; gap:5px;">📲 Mi código QR</h3>
+                        <button onclick="toggleQR()" id="btn-toggle-qr" style="background:rgba(255,255,255,0.1); border:none; color:white; padding:8px 12px; border-radius:8px; cursor:pointer; font-size:0.85rem; font-weight:bold;">👁️ Mostrar</button>
+                    </div>
+                    <div id="qr-display-box" style="display:none; justify-content:center; align-items:center; margin-top:15px; background:white; padding:15px; border-radius:10px;">
+                        <div style="width:120px; height:120px; background:url('data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 fill=%22white%22/><rect x=%2210%22 y=%2210%22 width=%2230%22 height=%2230%22 fill=%22none%22 stroke=%22black%22 stroke-width=%2210%22/><rect x=%2260%22 y=%2210%22 width=%2230%22 height=%2230%22 fill=%22none%22 stroke=%22black%22 stroke-width=%2210%22/><rect x=%2210%22 y=%2260%22 width=%2230%22 height=%2230%22 fill=%22none%22 stroke=%22black%22 stroke-width=%2210%22/><rect x=%2260%22 y=%2260%22 width=%2210%22 height=%2210%22 fill=%22black%22/><rect x=%2280%22 y=%2280%22 width=%2210%22 height=%2210%22 fill=%22black%22/><rect x=%2245%22 y=%2245%22 width=%2210%22 height=%2210%22 fill=%22black%22/></svg>') center/cover; border: 5px solid white;"></div>
+                    </div>
+                </div>
+                <div style="background: var(--panel-bg); border-radius:12px; padding:15px;">
+                    <h3 style="margin:0 0 10px 0; font-size:1rem; display:flex; align-items:center; gap:5px;">🔗 Enlace de invitación</h3>
+                    <div style="display:flex; gap:10px; margin-bottom:10px;">
+                        <input type="text" id="invite-link-input" readonly value="https://futcard.app/invite?c=" style="flex:1; padding:12px; border-radius:8px; border:none; background:var(--input-bg); color:var(--primary); font-size:0.8rem;">
+                        <button onclick="copyInviteLink()" style="background:var(--primary); color:white; border:none; border-radius:8px; padding:0 15px; font-weight:bold; cursor:pointer;">Copiar</button>
+                    </div>
+                    <button onclick="shareInviteLink()" style="width:100%; background:#16a34a; color:white; border:none; padding:12px; border-radius:8px; font-weight:bold; font-size:1rem; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:10px;">📤 Compartir por App</button>
+                </div>
+            </div>
+            <div style="padding:15px; border-top:1px solid var(--border-color); background:var(--panel-bg); width:100%; box-sizing:border-box;">
+                <button class="main-btn btn-close" style="margin:0;" onclick="closeScreen('friends-screen')" data-i18n="btn_back">Volver</button>
+            </div>
+        </div>
+    </div>
 
-    <div id="casillero-screen" class="overlay-screen" style="display: none; opacity: 0; z-index: 210;">
-        <div class="modal-panel" style="max-width: 550px; max-height: 90vh; padding: 20px; display: flex; flex-direction: column;">
-            <h2>🎒 Mi Casillero</h2>
-            <div class="tabs-header" style="flex-shrink: 0; margin-top:10px;">
-                <button class="tab-btn active" id="tab-cas-ball" onclick="renderCasillero('ball')">⚽ Balones</button>
-                <button class="tab-btn" id="tab-cas-skin" onclick="renderCasillero('skin')">🧍 Personajes</button>
-                <button class="tab-btn" id="tab-cas-stadium" onclick="renderCasillero('stadium')">🏟️ Estadios</button>
-                <button class="tab-btn" id="tab-cas-avatar" onclick="renderCasillero('avatar')">👤 Avatares</button>
-                <button class="tab-btn" id="tab-cas-effect" onclick="renderCasillero('effect')">✨ Efectos</button>
-            </div>
-            <div id="casillero-items" class="shop-grid" style="flex: 1; overflow-y: auto; width: 100%; padding-right: 5px;"></div>
-            <button class="main-btn btn-close" style="flex-shrink: 0; margin-top:15px;" onclick="closeScreen('casillero-screen')">Cerrar</button>
-        </div>
-    </div>
+    <div id="casillero-screen" class="overlay-screen" style="display: none; opacity: 0; z-index: 210;">
+        <div class="modal-panel" style="max-width: 550px; max-height: 90vh; padding: 20px; display: flex; flex-direction: column;">
+            <h2>🎒 Mi Casillero</h2>
+            <div class="tabs-header" style="flex-shrink: 0; margin-top:10px;">
+                <button class="tab-btn active" id="tab-cas-ball" onclick="renderCasillero('ball')">⚽ Balones</button>
+                <button class="tab-btn" id="tab-cas-skin" onclick="renderCasillero('skin')">🧍 Personajes</button>
+                <button class="tab-btn" id="tab-cas-stadium" onclick="renderCasillero('stadium')">🏟️ Estadios</button>
+                <button class="tab-btn" id="tab-cas-avatar" onclick="renderCasillero('avatar')">👤 Avatares</button>
+                <button class="tab-btn" id="tab-cas-effect" onclick="renderCasillero('effect')">✨ Efectos</button>
+            </div>
+            <div id="casillero-items" class="shop-grid" style="flex: 1; overflow-y: auto; width: 100%; padding-right: 5px;"></div>
+            <button class="main-btn btn-close" style="flex-shrink: 0; margin-top:15px;" onclick="closeScreen('casillero-screen')">Cerrar</button>
+        </div>
+    </div>
 
-    <div id="shop-screen" class="overlay-screen" style="display: none; opacity: 0;">
-        <div class="modal-panel" style="max-width: 550px; max-height: 90vh; padding: 20px; display: flex; flex-direction: column;">
-            <h2 data-i18n="shop_title">Tienda Diaria</h2>
-            <div class="shop-timer" id="shop-rotation-timer" style="flex-shrink:0;">Cambio en: 00:00:00</div>
-            
-            <div id="shop-all-items" style="flex: 1; overflow-y: auto; width: 100%; padding-right: 5px;"></div>
-            
-            <div class="tabs-header" style="flex-shrink: 0; margin-top:10px; border-bottom:none; border-top:1px solid var(--border-color); padding-top:10px;">
-                <button class="tab-btn" onclick="scrollToShopSec('packs')">💎</button>
-                <button class="tab-btn" onclick="scrollToShopSec('ball')">⚽</button>
-                <button class="tab-btn" onclick="scrollToShopSec('skin')">🧍</button>
-                <button class="tab-btn" onclick="scrollToShopSec('stadium')">🏟️</button>
-                <button class="tab-btn" onclick="scrollToShopSec('avatar')">👤</button>
-                <button class="tab-btn" onclick="scrollToShopSec('effect')">✨</button>
-            </div>
-            
-            <button class="main-btn btn-close" style="flex-shrink: 0; margin-top:5px;" onclick="closeScreen('shop-screen')" data-i18n="btn_close">Cerrar</button>
-        </div>
-    </div>
-    
-    <div id="pass-screen" class="overlay-screen" style="display: none; opacity: 0;">
-        <div id="pass-modal" class="modal-panel">
-            <div class="pass-header-img2">
-                <h2 style="margin:0; color:var(--gold);" data-i18n="pass_title">Pase Estelar</h2>
-                <div style="display:flex; gap:10px; align-items:center;">
-                    <span style="font-weight:bold; color:white;">Nivel: <span id="pass-global-prog">1/100</span></span>
-                    <button id="btn-buy-pass" onclick="buyPremiumPass()" style="background:var(--primary); color:white; border:none; padding:8px 15px; border-radius:8px; font-weight:bold; cursor:pointer;">Mejorar (50💎)</button>
-                    <button class="btn-close" style="margin:0; padding:8px 15px; background:var(--danger); color:white; border:none; border-radius:8px;" onclick="closeScreen('pass-screen')">X</button>
-                </div>
-            </div>
-            <div class="pass-body-img2">
-                <div class="pass-track-wrapper">
-                    <div class="pass-track-line" id="pass-track-content">
-                        </div>
-                </div>
-            </div>
-        </div>
-    </div>
+    <div id="shop-screen" class="overlay-screen" style="display: none; opacity: 0;">
+        <div class="modal-panel" style="max-width: 550px; max-height: 90vh; padding: 20px; display: flex; flex-direction: column;">
+            <h2 data-i18n="shop_title">Tienda Diaria</h2>
+            <div class="shop-timer" id="shop-rotation-timer" style="flex-shrink:0;">Cambio en: 00:00:00</div>
+            
+            <div id="shop-all-items" style="flex: 1; overflow-y: auto; width: 100%; padding-right: 5px;"></div>
+            
+            <div class="tabs-header" style="flex-shrink: 0; margin-top:10px; border-bottom:none; border-top:1px solid var(--border-color); padding-top:10px;">
+                <button class="tab-btn" onclick="scrollToShopSec('packs')">💎</button>
+                <button class="tab-btn" onclick="scrollToShopSec('ball')">⚽</button>
+                <button class="tab-btn" onclick="scrollToShopSec('skin')">🧍</button>
+                <button class="tab-btn" onclick="scrollToShopSec('stadium')">🏟️</button>
+                <button class="tab-btn" onclick="scrollToShopSec('avatar')">👤</button>
+                <button class="tab-btn" onclick="scrollToShopSec('effect')">✨</button>
+            </div>
+            
+            <button class="main-btn btn-close" style="flex-shrink: 0; margin-top:5px;" onclick="closeScreen('shop-screen')" data-i18n="btn_close">Cerrar</button>
+        </div>
+    </div>
+    
+    <div id="pass-screen" class="overlay-screen" style="display: none; opacity: 0;">
+        <div id="pass-modal" class="modal-panel">
+            <div class="pass-header-img2">
+                <h2 style="margin:0; color:var(--gold);" data-i18n="pass_title">Pase Estelar</h2>
+                <div style="display:flex; gap:10px; align-items:center;">
+                    <span style="font-weight:bold; color:white;">Nivel: <span id="pass-global-prog">1/100</span></span>
+                    <button id="btn-buy-pass" onclick="buyPremiumPass()" style="background:var(--primary); color:white; border:none; padding:8px 15px; border-radius:8px; font-weight:bold; cursor:pointer;">Mejorar (50💎)</button>
+                    <button class="btn-close" style="margin:0; padding:8px 15px; background:var(--danger); color:white; border:none; border-radius:8px;" onclick="closeScreen('pass-screen')">X</button>
+                </div>
+            </div>
+            <div class="pass-body-img2">
+                <div class="pass-track-wrapper">
+                    <div class="pass-track-line" id="pass-track-content">
+                        </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
-    <div id="pack-animation-screen" class="overlay-screen" style="display: none; opacity: 0; z-index: 400; background: rgba(0,0,0,0.95);">
-        <h2 style="color:var(--gold); font-size:2rem; margin-bottom:30px;" id="pack-title">TOCA PARA ABRIR</h2>
-        <div id="pack-card" style="width: 150px; height: 200px; background: linear-gradient(45deg, #facc15, #f59e0b); border-radius: 15px; cursor: pointer; box-shadow: 0 0 30px #facc15; display: flex; justify-content:center; align-items:center; font-size:4rem;" onclick="revealPack()">❓</div>
-        <div id="pack-reveal" style="width: 160px; height: 220px; background: white; border-radius: 15px; display: none; flex-direction: column; align-items: center; justify-content: center; animation: popIn 0.5s ease-out forwards; box-shadow: 0 0 50px rgba(255,255,255,0.8);">
-            <div id="pack-reveal-icon" style="font-size: 3rem; margin-bottom:10px;">⚽</div>
-            <h3 id="pack-reveal-text" style="color:black; margin:0; text-align:center; font-size:1.2rem;"></h3>
-        </div>
-        <button id="pack-close-btn" class="main-btn" style="display:none; max-width:200px; margin-top:30px; background:var(--primary);" onclick="closePack()">Continuar</button>
-    </div>
+    <div id="pack-animation-screen" class="overlay-screen" style="display: none; opacity: 0; z-index: 400; background: rgba(0,0,0,0.95);">
+        <h2 style="color:var(--gold); font-size:2rem; margin-bottom:30px;" id="pack-title">TOCA PARA ABRIR</h2>
+        <div id="pack-card" style="width: 150px; height: 200px; background: linear-gradient(45deg, #facc15, #f59e0b); border-radius: 15px; cursor: pointer; box-shadow: 0 0 30px #facc15; display: flex; justify-content:center; align-items:center; font-size:4rem;" onclick="revealPack()">❓</div>
+        <div id="pack-reveal" style="width: 160px; height: 220px; background: white; border-radius: 15px; display: none; flex-direction: column; align-items: center; justify-content: center; animation: popIn 0.5s ease-out forwards; box-shadow: 0 0 50px rgba(255,255,255,0.8);">
+            <div id="pack-reveal-icon" style="font-size: 3rem; margin-bottom:10px;">⚽</div>
+            <h3 id="pack-reveal-text" style="color:black; margin:0; text-align:center; font-size:1.2rem;"></h3>
+        </div>
+        <button id="pack-close-btn" class="main-btn" style="display:none; max-width:200px; margin-top:30px; background:var(--primary);" onclick="closePack()">Continuar</button>
+    </div>
 
-    <div id="settings-screen" class="overlay-screen" style="display: none; opacity: 0;">
-        <div class="modal-panel">
-            <h2 data-i18n="settings_title">Ajustes</h2>
-            
-            <label style="font-size:0.8rem; color:var(--text-muted); margin-bottom:-10px; text-align:left; width:100%;">Nombre de usuario:</label>
-            <input type="text" id="player-name-input" placeholder="Tu Nombre" maxlength="12" style="background:var(--input-bg); color:var(--text-color); border:1px solid var(--border-color); border-radius:10px; padding:12px; width:100%; box-sizing:border-box;">
-            
-            <label style="font-size:0.8rem; color:var(--text-muted); margin-bottom:-10px; text-align:left; width:100%;">Tu descripción:</label>
-            <textarea id="player-bio-input" placeholder="Tu descripción (ej: ¡Soy el mejor!)" maxlength="60" style="background:var(--input-bg); color:var(--text-color); border:1px solid var(--border-color); border-radius:10px; padding:12px; width:100%; box-sizing:border-box; resize:none; height:60px; font-family:inherit; outline:none;"></textarea>
+    <div id="settings-screen" class="overlay-screen" style="display: none; opacity: 0;">
+        <div class="modal-panel">
+            <h2 data-i18n="settings_title">Ajustes</h2>
+            
+            <label style="font-size:0.8rem; color:var(--text-muted); margin-bottom:-10px; text-align:left; width:100%;">Nombre de usuario:</label>
+            <input type="text" id="player-name-input" placeholder="Tu Nombre" maxlength="12" style="background:var(--input-bg); color:var(--text-color); border:1px solid var(--border-color); border-radius:10px; padding:12px; width:100%; box-sizing:border-box;">
+            
+            <label style="font-size:0.8rem; color:var(--text-muted); margin-bottom:-10px; text-align:left; width:100%;">Tu descripción:</label>
+            <textarea id="player-bio-input" placeholder="Tu descripción (ej: ¡Soy el mejor!)" maxlength="60" style="background:var(--input-bg); color:var(--text-color); border:1px solid var(--border-color); border-radius:10px; padding:12px; width:100%; box-sizing:border-box; resize:none; height:60px; font-family:inherit; outline:none;"></textarea>
 
-            <label style="font-size:0.8rem; color:var(--text-muted); margin-bottom:-10px; text-align:left; width:100%;">Elige tu Avatar:</label>
-            <div id="avatar-selector-grid" style="display:flex; gap:10px; justify-content:center; margin-top:10px; background:rgba(0,0,0,0.2); padding:10px; border-radius:12px;">
-                <div class="av-preset-opt active" onclick="selectPresetAvatar('⚽')" data-av="⚽">⚽</div>
-                <div class="av-preset-opt" onclick="selectPresetAvatar('🏆')" data-av="🏆">🏆</div>
-                <div class="av-preset-opt" onclick="selectPresetAvatar('👟')" data-av="👟">👟</div>
-                <div class="av-preset-opt" onclick="selectPresetAvatar('🏟️')" data-av="🏟️">🏟️</div>
-                <div class="av-preset-opt" onclick="selectPresetAvatar('🔥')" data-av="🔥">🔥</div>
-            </div>
+            <label style="font-size:0.8rem; color:var(--text-muted); margin-bottom:-10px; text-align:left; width:100%;">Elige tu Avatar:</label>
+            <div id="avatar-selector-grid" style="display:flex; gap:10px; justify-content:center; margin-top:10px; background:rgba(0,0,0,0.2); padding:10px; border-radius:12px;">
+                <div class="av-preset-opt active" onclick="selectPresetAvatar('⚽')" data-av="⚽">⚽</div>
+                <div class="av-preset-opt" onclick="selectPresetAvatar('🏆')" data-av="🏆">🏆</div>
+                <div class="av-preset-opt" onclick="selectPresetAvatar('👟')" data-av="👟">👟</div>
+                <div class="av-preset-opt" onclick="selectPresetAvatar('🏟️')" data-av="🏟️">🏟️</div>
+                <div class="av-preset-opt" onclick="selectPresetAvatar('🔥')" data-av="🔥">🔥</div>
+            </div>
 
-            <button class="main-btn" style="background:#8b5cf6; margin-top:10px;" onclick="enterHUDEdit()">🎮 Personalizar Controles</button>
+            <button class="main-btn" style="background:#8b5cf6; margin-top:10px;" onclick="enterHUDEdit()">🎮 Personalizar Controles</button>
 
-            <div style="display:flex; gap:10px; width:100%; margin-top:10px;">
-                <select id="setting-theme" style="flex:1; padding:12px; background:var(--input-bg); color:var(--text-color); border:1px solid var(--border-color); border-radius:10px;"><option value="dark">🌙 Oscuro</option><option value="light">☀️ Claro</option></select>
-                <select id="setting-lang" style="flex:1; padding:12px; background:var(--input-bg); color:var(--text-color); border:1px solid var(--border-color); border-radius:10px;"><option value="es">🇪🇸 ES</option><option value="en">🇬🇧 EN</option><option value="pt">🇧🇷 PT</option></select>
-            </div>
-            
-            <div style="display:flex; gap:10px; width:100%; margin-top:10px; background:var(--input-bg); padding:12px; border-radius:10px; border:1px solid var(--border-color); box-sizing:border-box; align-items:center;">
-                <span style="flex:1; font-size:0.9rem; font-weight:bold;">Controles Optimizados (✔️/❌)</span>
-                <select id="setting-opt-controls" style="flex:1; padding:8px; background:var(--panel-bg); color:var(--text-color); border:1px solid var(--border-color); border-radius:8px;">
-                    <option value="true">Activado</option>
-                    <option value="false">Desactivado</option>
-                </select>
-            </div>
+            <div style="display:flex; gap:10px; width:100%; margin-top:10px;">
+                <select id="setting-theme" style="flex:1; padding:12px; background:var(--input-bg); color:var(--text-color); border:1px solid var(--border-color); border-radius:10px;"><option value="dark">🌙 Oscuro</option><option value="light">☀️ Claro</option></select>
+                <select id="setting-lang" style="flex:1; padding:12px; background:var(--input-bg); color:var(--text-color); border:1px solid var(--border-color); border-radius:10px;"><option value="es">🇪🇸 ES</option><option value="en">🇬🇧 EN</option><option value="pt">🇧🇷 PT</option></select>
+            </div>
+            
+            <div style="display:flex; gap:10px; width:100%; margin-top:10px; background:var(--input-bg); padding:12px; border-radius:10px; border:1px solid var(--border-color); box-sizing:border-box; align-items:center;">
+                <span style="flex:1; font-size:0.9rem; font-weight:bold;">Controles Optimizados (✔️/❌)</span>
+                <select id="setting-opt-controls" style="flex:1; padding:8px; background:var(--panel-bg); color:var(--text-color); border:1px solid var(--border-color); border-radius:8px;">
+                    <option value="true">Activado</option>
+                    <option value="false">Desactivado</option>
+                </select>
+            </div>
 
-            <button class="btn-google" id="btn-open-login" onclick="openScreen('login-screen')" style="background:white; color:#333; padding:12px; border-radius:10px; border:none; width:100%; font-weight:bold; cursor:pointer; display:flex; justify-content:center; align-items:center; gap:10px; margin-top:10px;">
-                <svg viewBox="0 0 24 24" style="width:20px;height:20px;"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
-                <span data-i18n="btn_login_google">Vincular Google</span>
-            </button>
-            <button class="main-btn" id="btn-logout" onclick="processLogout()" style="background:var(--danger); display:none; margin-top:10px;" data-i18n="btn_logout">Cerrar sesión</button>
-            <button class="main-btn btn-close" onclick="saveSettings()" data-i18n="btn_save_close">Guardar</button>
-        </div>
-    </div>
-    
-    <div id="loading-overlay" class="overlay-screen" style="display: none; opacity: 0; z-index: 300;">
-        <div style="width: 40px; height: 40px; border: 4px solid rgba(255,255,255,0.1); border-top: 4px solid var(--primary); border-radius: 50%; animation: spin 1s linear infinite;"></div>
-    </div>
+            <button class="btn-google" id="btn-open-login" onclick="openScreen('login-screen')" style="background:white; color:#333; padding:12px; border-radius:10px; border:none; width:100%; font-weight:bold; cursor:pointer; display:flex; justify-content:center; align-items:center; gap:10px; margin-top:10px;">
+                <svg viewBox="0 0 24 24" style="width:20px;height:20px;"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
+                <span data-i18n="btn_login_google">Vincular Google</span>
+            </button>
+            <button class="main-btn" id="btn-logout" onclick="processLogout()" style="background:var(--danger); display:none; margin-top:10px;" data-i18n="btn_logout">Cerrar sesión</button>
+            <button class="main-btn btn-close" onclick="saveSettings()" data-i18n="btn_save_close">Guardar</button>
+        </div>
+    </div>
+    
+    <div id="loading-overlay" class="overlay-screen" style="display: none; opacity: 0; z-index: 300;">
+        <div style="width: 40px; height: 40px; border: 4px solid rgba(255,255,255,0.1); border-top: 4px solid var(--primary); border-radius: 50%; animation: spin 1s linear infinite;"></div>
+    </div>
 
-    <script src="logica.js"></script>
+    <script src="logica.js"></script>
 
 </body>
 </html>
