@@ -1,5 +1,6 @@
 const express = require('express');
 const http = require('http');
+const path = require('path'); // Añadimos esto para manejar rutas
 const { Server } = require('socket.io');
 
 const app = express();
@@ -8,9 +9,16 @@ const io = new Server(server, {
     cors: { origin: "*" }
 });
 
-app.use(express.static('public'));
+// --- SERVIR ARCHIVOS ESTÁTICOS ---
+// Usamos 'Public' con P mayúscula para que coincida con tu carpeta real
+app.use(express.static(path.join(__dirname, 'Public')));
 
-// --- LÓGICA DEL MULTIJUGADOR ---
+// Ruta explícita para asegurarnos de que cargue el juego al entrar
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'Public', 'index.html'));
+});
+
+// --- LÓGICA DEL MULTIJUGADOR (Tu código original) ---
 io.on('connection', (socket) => {
     console.log('Jugador conectado:', socket.id);
 
@@ -22,7 +30,6 @@ io.on('connection', (socket) => {
 
     // Enviar movimiento a los demás en la sala
     socket.on('player-move', (data) => {
-        // data contiene { x, y, angle, roomCode }
         socket.to(data.roomCode).emit('player-moved', {
             id: socket.id,
             x: data.x,
@@ -46,7 +53,8 @@ io.on('connection', (socket) => {
     });
 });
 
-const PORT = process.env.PORT || 3000;
+// Render usa puertos dinámicos, 10000 es el estándar de Render
+const PORT = process.env.PORT || 10000;
 server.listen(PORT, () => {
     console.log(`Servidor FutCard corriendo en puerto ${PORT}`);
 });
