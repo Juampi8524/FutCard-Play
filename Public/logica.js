@@ -1,4 +1,4 @@
- // --- CONEXIÓN AL SERVIDOR MULTIJUGADOR ---
+// --- CONEXIÓN AL SERVIDOR MULTIJUGADOR ---
 let socket;
 try {
     socket = io('https://futcard-play.onrender.com'); 
@@ -27,65 +27,57 @@ window.db = firebase.firestore();
 // --- INICIALIZAR AUTH DE FIREBASE ---
 const auth = firebase.auth();
 
-// --- FUNCIÓN REAL DE LOGIN CON GOOGLE ---
+// --- FUNCIÓN DE LOGIN CON GOOGLE Y GUARDADO (UNIFICADO POR EMAIL) ---
 function signInWithGoogle() {
     const provider = new firebase.auth.GoogleAuthProvider();
+    auth.signInWithPopup(provider).then((result) => {
+        const user = result.user;
+        const email = user.email.toLowerCase().trim();
+        const loader = document.getElementById('loading-overlay');
+        loader.style.display = 'flex';
 
-    auth.signInWithPopup(provider)
-        .then((result) => {
-            const user = result.user;
-            const email = user.email.toLowerCase().trim();
-
-            console.log("Sesión de Google iniciada:", email);
-
-            // Activamos la pantalla de carga de tu juego
-            const loader = document.getElementById('loading-overlay');
-            loader.style.display = 'flex';
-            setTimeout(() => loader.style.opacity = '1', 10);
-
-            setTimeout(() => {
-                loader.style.opacity = '0';
-                setTimeout(() => loader.style.display = 'none', 400);
-
-                // Si el jugador es nuevo, le creamos su perfil en tu sistema local
-                if (!allAccounts[email]) {
-                    allAccounts[email] = JSON.parse(JSON.stringify(allAccounts['invitado']));
-                    allAccounts[email].password = 'google_auth'; // Contraseña bloqueada
-                    // Usamos el nombre real de su cuenta de Google si existe
-                    allAccounts[email].name = user.displayName ? user.displayName.substring(0, 12) : email.split('@')[0].substring(0, 10);
-                    allAccounts[email].code = Math.floor(100000 + Math.random() * 900000).toString();
-                }
-
-                // Iniciamos la sesión en el juego
-                activeUserEmail = email;
-                localStorage.setItem('futActiveEmail', activeUserEmail);
-                loadAccount(activeUserEmail);
-                saveAccounts();
-
-                // Cerramos la ventana modal
-                closeScreen('login-screen');
-                
-            }, 1000); // Simulamos un pequeño tiempo de carga para que se vea fluido
-
-        })
-        .catch((error) => {
-            console.error("Error al iniciar sesión con Google:", error.code, error.message);
-            alert("Hubo un error al conectar con Google. Inténtalo de nuevo.");
+        window.db.collection("usuarios").doc(email).get().then((doc) => {
+            if (doc.exists) {
+                allAccounts[email] = doc.data();
+            } else {
+                allAccounts[email] = JSON.parse(JSON.stringify(allAccounts['invitado']));
+                allAccounts[email].password = 'google_auth';
+                allAccounts[email].name = user.displayName ? user.displayName.substring(0, 12) : email.split('@')[0].substring(0, 10);
+                allAccounts[email].code = Math.floor(100000 + Math.random() * 900000).toString();
+            }
+            activeUserEmail = email;
+            localStorage.setItem('futActiveEmail', activeUserEmail);
+            loadAccount(activeUserEmail);
+            saveAccounts();
+            loader.style.display = 'none';
+            closeScreen('login-screen');
         });
+    }).catch(e => alert("Error Google: " + e.message));
 }
-// --- PING DE ESTADO ONLINE EN FIREBASE ---
-setInterval(() => {
-    if(window.db && currentUser && currentUser.code && activeUserEmail !== 'invitado') {
-        window.db.collection("usuarios").doc(currentUser.code).set({
-            lastOnline: Date.now(),
-            nombre: currentUser.name,
-            bio: currentUser.bio || "",
-            avatar: currentUser.equipped.avatar || "⚽", // Guardamos el avatar actual
-            email: activeUserEmail
-        }, {merge: true}).catch(e=>{});
-    }
-}, 30000); 
 
+function saveAccounts() { 
+    if (!currentUser || activeUserEmail === 'invitado') return;
+    allAccounts[activeUserEmail] = currentUser; 
+    localStorage.setItem('futAccounts', JSON.stringify(allAccounts)); 
+    applyProfile(); 
+    if(window.db) {
+        window.db.collection("usuarios").doc(activeUserEmail).set(currentUser, {merge: true})
+            .catch(e => console.error("Error nube:", e));
+    }
+}
+
+// --- PING DE ESTADO ONLINE (CORREGIDO PARA USAR EMAIL) ---
+setInterval(() => {
+    if(window.db && currentUser && activeUserEmail !== 'invitado') {
+        window.db.collection("usuarios").doc(activeUserEmail).set({
+            lastOnline: Date.now(),
+            nombre: currentUser.name,
+            bio: currentUser.bio || "",
+            avatar: currentUser.equipped.avatar || "⚽",
+            email: activeUserEmail
+        }, {merge: true}).catch(e=>{});
+    }
+}, 30000);
 function formatLastOnline(timestamp) {
     if(!timestamp) return "Desconocido";
     let diff = Date.now() - timestamp;
@@ -467,73 +459,36 @@ function toggleAuthMode() {
 function processAuth() {
     let email = document.getElementById('login-email').value.trim().toLowerCase();
     let pass = document.getElementById('login-pass').value.trim();
-
-    if (!email || !pass) return alert("Por favor completa los campos.");
-    if (!email.includes('@')) return alert("Introduce un correo válido.");
+    if (!email || !pass) return alert("Completa los campos.");
 
     const loader = document.getElementById('loading-overlay');
     loader.style.display = 'flex';
-    setTimeout(() => loader.style.opacity = '1', 10);
-
-    const hideLoader = () => {
-        loader.style.opacity = '0';
-        setTimeout(() => loader.style.display = 'none', 400);
-    };
 
     if (authMode === 'register') {
         let passC = document.getElementById('login-pass-confirm').value.trim();
-        if (pass !== passC) { hideLoader(); return alert("Las contraseñas no coinciden."); }
-        if (pass.length < 6) { hideLoader(); return alert("Firebase exige que la contraseña tenga al menos 6 caracteres."); }
-
-        auth.createUserWithEmailAndPassword(email, pass)
-            .then((userCredential) => {
-                hideLoader();
-                if (!allAccounts[email]) {
-                    allAccounts[email] = JSON.parse(JSON.stringify(allAccounts['invitado']));
-                    allAccounts[email].password = 'firebase_auth'; 
-                    allAccounts[email].name = email.split('@')[0].substring(0, 10);
-                    allAccounts[email].code = Math.floor(100000 + Math.random() * 900000).toString();
-                }
-                activeUserEmail = email;
-                localStorage.setItem('futActiveEmail', activeUserEmail);
-                loadAccount(activeUserEmail);
-                saveAccounts();
-                alert("¡Cuenta creada exitosamente! Tu código es: " + currentUser.code);
-                closeScreen('login-screen');
-            })
-            .catch((error) => {
-                hideLoader();
-                if(error.code === 'auth/email-already-in-use') {
-                    alert("Este correo ya está registrado. Intenta iniciar sesión.");
-                } else {
-                    alert("Error al registrar: " + error.message);
-                }
-            });
-
+        if (pass !== passC) { loader.style.display='none'; return alert("No coinciden."); }
+        auth.createUserWithEmailAndPassword(email, pass).then(() => {
+            allAccounts[email] = JSON.parse(JSON.stringify(allAccounts['invitado']));
+            allAccounts[email].name = email.split('@')[0].substring(0, 10);
+            allAccounts[email].code = Math.floor(100000 + Math.random() * 900000).toString();
+            activeUserEmail = email;
+            saveAccounts(); loadAccount(email); closeScreen('login-screen'); loader.style.display='none';
+        }).catch(e => { loader.style.display='none'; alert(e.message); });
     } else {
-        auth.signInWithEmailAndPassword(email, pass)
-            .then((userCredential) => {
-                hideLoader();
-                if (!allAccounts[email]) {
-                    allAccounts[email] = JSON.parse(JSON.stringify(allAccounts['invitado']));
-                    allAccounts[email].password = 'firebase_auth';
-                    allAccounts[email].name = email.split('@')[0].substring(0, 10);
-                    allAccounts[email].code = Math.floor(100000 + Math.random() * 900000).toString();
-                }
+        auth.signInWithEmailAndPassword(email, pass).then(() => {
+            window.db.collection("usuarios").doc(email).get().then((doc) => {
+                if (doc.exists) allAccounts[email] = doc.data();
                 activeUserEmail = email;
-                localStorage.setItem('futActiveEmail', activeUserEmail);
-                loadAccount(activeUserEmail);
-                saveAccounts();
+                localStorage.setItem('futActiveEmail', email);
+                loadAccount(email);
+                loader.style.display='none';
                 closeScreen('login-screen');
-            })
-            .catch((error) => {
-                hideLoader();
-                alert("Error al iniciar sesión. Verifica que tu correo y contraseña sean correctos.");
             });
+        }).catch(e => { loader.style.display='none'; alert("Datos incorrectos."); });
     }
 }
 
-function closeLoginIfGuest() { alert("Debes iniciar sesión o registrarte para poder jugar."); }
+function closeLoginIfGuest() { alert("Debes iniciar sesión para jugar."); }
 
 function processLogout() { 
     activeUserEmail = 'invitado'; 
@@ -541,14 +496,7 @@ function processLogout() {
     loadAccount('invitado'); 
     closeScreen('settings-screen'); 
     checkInitialLogin(); 
-}function processLogout() { 
-    activeUserEmail = 'invitado'; 
-    localStorage.setItem('futActiveEmail', activeUserEmail); 
-    loadAccount('invitado'); 
-    closeScreen('settings-screen'); 
-    checkInitialLogin(); 
 }
-
 function applyProfile() { 
     setTxt('dash-coins', currentUser.coins); setTxt('dash-card-coins', currentUser.coins); 
     setTxt('dash-dia', currentUser.dia); setTxt('dash-card-dia', currentUser.dia);
@@ -1189,7 +1137,6 @@ function gameLoop() { 
         } else if(gameState==='hud_edit') { drawPitch(); b.drawB(); if(sk) p1.drawP(sk.c, sk.s); p2.drawP('#3b82f6', '#d2dae2'); }
     } 
     prevKeys = {...keys}; requestAnimationFrame(gameLoop); 
-}
 
 let currTime=90, currentHalf=1, tInt;
 function updateTimerUI() { 
